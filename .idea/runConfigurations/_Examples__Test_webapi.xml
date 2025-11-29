@@ -1,0 +1,13 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="[Examples] Test webapi" type="GoTestRunConfiguration" factoryName="Go Test">
+    <module name="testereiro" />
+    <working_directory value="$PROJECT_DIR$/examples/webapi" />
+    <envs>
+      <env name="DEBUG" value="local" />
+    </envs>
+    <kind value="PACKAGE" />
+    <package value="github.com/wrapped-owls/examples/webapi" />
+    <framework value="gotest" />
+    <method v="2" />
+  </configuration>
+</component>

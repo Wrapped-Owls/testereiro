@@ -1,0 +1,14 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="go test puppetest" type="GoTestRunConfiguration" factoryName="Go Test" nameIsGenerated="true">
+    <module name="testereiro" />
+    <working_directory value="$PROJECT_DIR$/puppetest" />
+    <envs>
+      <env name="DEBUG" value="local" />
+    </envs>
+    <kind value="DIRECTORY" />
+    <package value="github.com/wrapped-owls/testereiro/puppetest" />
+    <directory value="$PROJECT_DIR$/puppetest" />
+    <framework value="gotest" />
+    <method v="2" />
+  </configuration>
+</component>
