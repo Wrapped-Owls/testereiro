@@ -1,0 +1,47 @@
+package puppetest
+
+import (
+	"database/sql"
+	"fmt"
+	"net/http/httptest"
+
+	"github.com/wrapped-owls/testereiro/puppetest/internal/dbastidor"
+)
+
+type Engine struct {
+	ts *httptest.Server
+	db *DBWrapper
+}
+
+func (e *Engine) BaseURL() string {
+	if e.ts != nil {
+		return e.ts.URL
+	}
+	return "" // TODO: Check a way to have this URL linked on the engine directly
+}
+
+func (e *Engine) DB() *sql.DB {
+	return e.db.conn
+}
+
+func (e *Engine) Teardown() error {
+	if e.ts != nil {
+		e.ts.Close()
+	}
+	if !e.db.IsZero() {
+		if dbErr := e.db.Teardown(); dbErr != nil {
+			return dbErr
+		}
+	}
+
+	return nil
+}
+
+func (e *Engine) Seed(seeds ...any) error {
+	for _, s := range seeds {
+		if err := dbastidor.ExecuteSeedStruct(e.db.Connection(), s); err != nil {
+			return fmt.Errorf("failed to seed data: %w", err)
+		}
+	}
+	return nil
+}
