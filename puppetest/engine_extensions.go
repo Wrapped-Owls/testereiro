@@ -16,6 +16,17 @@ func WithTestServer(handler http.Handler) EngineExtension {
 	}
 }
 
+func WithTestServerFromEngine(handlerFactory func(*Engine) (http.Handler, error)) EngineExtension {
+	return func(e *Engine) error {
+		mainHandler, err := handlerFactory(e)
+		if err != nil {
+			return fmt.Errorf("could not create main handler: %w", err)
+		}
+		e.ts = httptest.NewServer(mainHandler)
+		return nil
+	}
+}
+
 func WithMigrationRunner(migrations fs.FS) EngineExtension {
 	return func(e *Engine) error {
 		if e.db == nil {
