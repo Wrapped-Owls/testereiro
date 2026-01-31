@@ -19,7 +19,7 @@ import (
 
 var NewEngine func(t testing.TB) *puppetest.Engine
 
-func SQLitePerformer(ctx context.Context, conf puppetest.DBConnectionConfig) (*sql.DB, error) {
+func SQLitePerformer(_ context.Context, conf puppetest.DBConnectionConfig) (*sql.DB, error) {
 	dsn := ":memory:"
 	if conf.DBName != "" {
 		dsn = fmt.Sprintf("file:%s?mode=memory&cache=shared", conf.DBName)
@@ -29,11 +29,13 @@ func SQLitePerformer(ctx context.Context, conf puppetest.DBConnectionConfig) (*s
 
 func TestMain(m *testing.M) {
 	engineFactory, err := puppetest.NewEngineFactory(
-		SQLitePerformer,
-		puppetest.WithMigrationRunner(migrations.MigrationFS()),
-		puppetest.WithTestServerFromEngine(func(e *puppetest.Engine) (http.Handler, error) {
-			return sqlite.NewHandler(e.DB()), nil
-		}),
+		puppetest.WithConnectionFactory(SQLitePerformer, false),
+		puppetest.WithExtensions(
+			puppetest.WithMigrationRunner(migrations.MigrationFS()),
+			puppetest.WithTestServerFromEngine(func(e *puppetest.Engine) (http.Handler, error) {
+				return sqlite.NewHandler(e.DB()), nil
+			}),
+		),
 	)
 	if err != nil {
 		slog.Error("failed to setup engine factory", slog.String("error", err.Error()))

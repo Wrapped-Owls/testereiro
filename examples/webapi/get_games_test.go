@@ -1,8 +1,6 @@
 package webapi
 
 import (
-	"context"
-	"database/sql"
 	"log/slog"
 	"net/http"
 	"os"
@@ -16,11 +14,9 @@ var NewEngine func(t testing.TB) *puppetest.Engine
 
 func TestMain(m *testing.M) {
 	engineFactory, err := puppetest.NewEngineFactory(
-		func(ctx context.Context, conf puppetest.DBConnectionConfig) (*sql.DB, error) {
-			// WebAPI example doesn't use DB, but puppetest requires a performer for now
-			return nil, nil
-		},
-		puppetest.WithTestServer(NewHandler()),
+		puppetest.WithExtensions(
+			puppetest.WithTestServer(NewHandler()),
+		),
 	)
 	if err != nil {
 		slog.Error("failed to setup engine factory", slog.String("error", err.Error()))
@@ -49,7 +45,7 @@ func TestIndieGames(t *testing.T) {
 		reqrunner.ExpectBody(Games),
 	)
 
-	if err := mr.Run(t, nil); err != nil {
+	if err := engine.Execute(t, mr); err != nil {
 		t.Fatalf("HttpRunner failed: %v", err)
 	}
 }
