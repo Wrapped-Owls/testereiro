@@ -4,8 +4,11 @@ import (
 	"database/sql"
 	"fmt"
 	"net/http/httptest"
+	"testing"
 
 	"github.com/wrapped-owls/testereiro/puppetest/internal/dbastidor"
+	"github.com/wrapped-owls/testereiro/puppetest/internal/stgctx"
+	"github.com/wrapped-owls/testereiro/puppetest/pkg/runners"
 )
 
 type Engine struct {
@@ -44,4 +47,9 @@ func (e *Engine) Seed(seeds ...any) error {
 		}
 	}
 	return nil
+}
+
+func (e *Engine) Execute(t testing.TB, runner runners.Runner) error {
+	ctx := stgctx.NewRunnerContext(t.Context())
+	return runner.Run(t, ctx)
 }
