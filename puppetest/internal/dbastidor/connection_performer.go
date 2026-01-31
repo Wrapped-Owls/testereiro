@@ -15,7 +15,9 @@ type (
 	ConnectionPerformer func(ctx context.Context, conf ConnectionConfig) (*sql.DB, error)
 )
 
-func (connPerf ConnectionPerformer) Execute(ctx context.Context, conf ConnectionConfig, timeout time.Duration) (*sql.DB, error) {
+func (connPerf ConnectionPerformer) Execute(
+	ctx context.Context, conf ConnectionConfig, timeout time.Duration,
+) (*sql.DB, error) {
 	var cancel context.CancelFunc
 	ctx, cancel = context.WithTimeout(ctx, timeout)
 	defer cancel()

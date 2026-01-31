@@ -4,15 +4,14 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"fmt"
 	"time"
 )
 
 type ConnectionFactory struct {
-	rootDB          *sql.DB
-	connPerformer   ConnectionPerformer
-	connTimeout     time.Duration
-	executeCreateDb bool
+	rootDB        *sql.DB
+	connPerformer ConnectionPerformer
+	connTimeout   time.Duration
+	lifecycle     DBLifecycle
 }
 
 func NewConnectionFactory(
@@ -23,35 +22,47 @@ func NewConnectionFactory(
 	}
 	factory.connPerformer = performer
 	factory.connTimeout = time.Second
-	factory.executeCreateDb = executeCreateDbStmt
 
 	factory.rootDB, err = factory.connPerformer.Execute(
 		ctx, ConnectionConfig{}, factory.connTimeout,
 	)
-	return factory, err
+	if err != nil {
+		return factory, err
+	}
+
+	factory.lifecycle = NoOpLifecycle{}
+	if executeCreateDbStmt {
+		factory.lifecycle = NewSQLLifecycle(factory.rootDB)
+	}
+	return factory, nil
 }
 
 func (fac *ConnectionFactory) NewDatabase(ctx context.Context, dbName string) (
 	newDb struct {
 		Connection *sql.DB
 		Name       string
+		Teardown   func() error
 	},
 	err error,
 ) {
-	dbConf := ConnectionConfig{
-		DBName:               dbNameNormalizer(dbName),
-		AllowMultiStatements: true,
-	}
-	if fac.executeCreateDb {
-		// Some drivers, such as SQLite, don't support the CREATE DATABASE command, so we need to skip this line
-		if _, err = fac.rootDB.ExecContext(ctx, fmt.Sprintf("CREATE DATABASE IF NOT EXISTS `%s`", newDb.Name)); err != nil {
-			return newDb, err
-		}
-		newDb.Name = dbConf.DBName
+	newDb.Name = dbNameNormalizer(dbName)
+	// The database creation must be done initially to allow connecting directly with it
+	if err = fac.lifecycle.Create(ctx, newDb.Name); err != nil {
+		return newDb, err
 	}
 
-	newDb.Connection, err = fac.connPerformer.Execute(ctx, dbConf, fac.connTimeout)
-	return newDb, err
+	dbConf := ConnectionConfig{
+		DBName:               newDb.Name,
+		AllowMultiStatements: true,
+	}
+	if newDb.Connection, err = fac.connPerformer.Execute(ctx, dbConf, fac.connTimeout); err != nil {
+		return newDb, err
+	}
+
+	newDb.Teardown = func() error {
+		return errors.Join(newDb.Connection.Close(), fac.lifecycle.Drop(ctx, newDb.Name))
+	}
+	return newDb, nil
 }
 
 func (fac *ConnectionFactory) Close() error {
