@@ -33,11 +33,15 @@ func (fac EngineFactory) NewEngine(t testing.TB) *Engine {
 		t.Fatal(err)
 	}
 	engine := &Engine{
-		db: NewRootDBWrapper(subDb.Name, subDb.Connection),
+		db: NewDBWrapper(subDb.Name, subDb.Connection),
 	}
 
 	t.Cleanup(
 		func() {
+			if subDb.Teardown != nil {
+				t.Log("Executing database teardown")
+				subDb.Teardown()
+			}
 			t.Log("Executing teardown on engine")
 			shutdownErr := engine.Teardown()
 			if shutdownErr != nil {

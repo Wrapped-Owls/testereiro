@@ -24,7 +24,7 @@ func (e *Engine) BaseURL() string {
 }
 
 func (e *Engine) DB() *sql.DB {
-	return e.db.conn
+	return e.db.Connection()
 }
 
 func (e *Engine) Teardown() error {
