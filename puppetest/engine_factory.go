@@ -10,37 +10,63 @@ import (
 type (
 	EngineExtension func(engine *Engine) error
 	EngineFactory   struct {
-		dbFactory  dbastidor.ConnectionFactory
+		dbFactory  *dbastidor.ConnectionFactory
 		extensions []EngineExtension
 	}
+	EngineFactoryOption func(*EngineFactory) error
 )
 
+func WithConnectionFactory(
+	connPerformer dbastidor.ConnectionPerformer, executeDbCreateStmt bool,
+) EngineFactoryOption {
+	return func(fac *EngineFactory) error {
+		dbFactory, err := dbastidor.NewConnectionFactory(
+			context.Background(), executeDbCreateStmt, connPerformer,
+		)
+		fac.dbFactory = dbFactory
+		return err
+	}
+}
+
+func WithExtensions(extensions ...EngineExtension) EngineFactoryOption {
+	return func(fac *EngineFactory) error {
+		fac.extensions = append(fac.extensions, extensions...)
+		return nil
+	}
+}
+
 func NewEngineFactory(
-	connPerformer dbastidor.ConnectionPerformer, extensions ...EngineExtension,
+	options ...EngineFactoryOption,
 ) (*EngineFactory, error) {
-	dbFactory, err := dbastidor.NewConnectionFactory(context.Background(), false, connPerformer)
-	newFactory := &EngineFactory{
-		dbFactory:  dbFactory,
-		extensions: extensions,
+	newFactory := &EngineFactory{}
+	for _, opt := range options {
+		if err := opt(newFactory); err != nil {
+			return newFactory, err
+		}
 	}
 
-	return newFactory, err
+	return newFactory, nil
 }
 
 func (fac EngineFactory) NewEngine(t testing.TB) *Engine {
-	subDb, err := fac.dbFactory.NewDatabase(t.Context(), t.Name())
-	if err != nil {
-		t.Fatal(err)
-	}
-	engine := &Engine{
-		db: NewDBWrapper(subDb.Name, subDb.Connection),
+	engine := new(Engine)
+	var dbTeardown func() error
+	if fac.dbFactory != nil {
+		subDb, err := fac.dbFactory.NewDatabase(t.Context(), t.Name())
+		if err != nil {
+			t.Fatal(err)
+		}
+		engine.db = NewDBWrapper(subDb.Name, subDb.Connection)
+		dbTeardown = subDb.Teardown
 	}
 
 	t.Cleanup(
 		func() {
-			if subDb.Teardown != nil {
+			if dbTeardown != nil {
 				t.Log("Executing database teardown")
-				subDb.Teardown()
+				if err := dbTeardown(); err != nil {
+					t.Error(err)
+				}
 			}
 			t.Log("Executing teardown on engine")
 			shutdownErr := engine.Teardown()
@@ -51,7 +77,7 @@ func (fac EngineFactory) NewEngine(t testing.TB) *Engine {
 	)
 
 	for _, extension := range fac.extensions {
-		if err = extension(engine); err != nil {
+		if err := extension(engine); err != nil {
 			t.Fatal(err)
 		}
 	}
@@ -60,5 +86,8 @@ func (fac EngineFactory) NewEngine(t testing.TB) *Engine {
 }
 
 func (fac EngineFactory) Close() error {
-	return fac.dbFactory.Close()
+	if fac.dbFactory != nil {
+		return fac.dbFactory.Close()
+	}
+	return nil
 }

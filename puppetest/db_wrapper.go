@@ -14,6 +14,9 @@ func NewDBWrapper(name string, conn *sql.DB) *DBWrapper {
 }
 
 func (dw *DBWrapper) Teardown() error {
+	if dw.conn == nil {
+		return nil
+	}
 	closeErr := dw.conn.Close()
 	return closeErr
 }

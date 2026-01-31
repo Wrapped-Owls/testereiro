@@ -24,6 +24,9 @@ func (e *Engine) BaseURL() string {
 }
 
 func (e *Engine) DB() *sql.DB {
+	if e.db == nil {
+		return nil
+	}
 	return e.db.Connection()
 }
 
@@ -31,7 +34,7 @@ func (e *Engine) Teardown() error {
 	if e.ts != nil {
 		e.ts.Close()
 	}
-	if !e.db.IsZero() {
+	if e.db != nil && !e.db.IsZero() {
 		if dbErr := e.db.Teardown(); dbErr != nil {
 			return dbErr
 		}
@@ -41,6 +44,9 @@ func (e *Engine) Teardown() error {
 }
 
 func (e *Engine) Seed(seeds ...any) error {
+	if e.db == nil || e.db.IsZero() {
+		return fmt.Errorf("database not initialized")
+	}
 	for _, s := range seeds {
 		if err := dbastidor.ExecuteSeedStruct(e.db.Connection(), s); err != nil {
 			return fmt.Errorf("failed to seed data: %w", err)
