@@ -15,8 +15,10 @@ type (
 	}
 )
 
-func NewEngineFactory(connPerformer dbastidor.ConnectionPerformer, extensions ...EngineExtension) (*EngineFactory, error) {
-	dbFactory, err := dbastidor.NewConnectionFactory(context.Background(), connPerformer)
+func NewEngineFactory(
+	connPerformer dbastidor.ConnectionPerformer, extensions ...EngineExtension,
+) (*EngineFactory, error) {
+	dbFactory, err := dbastidor.NewConnectionFactory(context.Background(), false, connPerformer)
 	newFactory := &EngineFactory{
 		dbFactory:  dbFactory,
 		extensions: extensions,

@@ -16,7 +16,10 @@ func NewRootDBWrapper(name string, conn *sql.DB) *DBWrapper {
 }
 
 func (dw *DBWrapper) Teardown() error {
-	_, execErr := dw.conn.Exec(fmt.Sprintf("DROP DATABASE IF EXISTS `%s`", dw.name))
+	var execErr error
+	if dw.name != "" {
+		_, execErr = dw.conn.Exec(fmt.Sprintf("DROP DATABASE IF EXISTS `%s`", dw.name))
+	}
 	closeErr := dw.conn.Close()
 	if err := errors.Join(execErr, closeErr); err != nil {
 		return err
