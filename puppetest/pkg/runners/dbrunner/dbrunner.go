@@ -2,17 +2,18 @@ package dbrunner
 
 import (
 	"database/sql"
-	"fmt"
-	"maps"
-	"strings"
 	"testing"
 
 	"github.com/wrapped-owls/testereiro/puppetest/internal/stgctx"
 )
 
 type (
+	// QueryBuilder is an interface for building SQL queries.
+	QueryBuilder interface {
+		Build(ctx stgctx.RunnerContext) (query string, args []any, err error)
+	}
+
 	dbValidator interface {
-		SelectionFields() string
 		Validate(t testing.TB, rows *sql.Rows) error
 	}
 	filterFromContext func(stgctx.RunnerContext) (map[string]any, error)
@@ -20,17 +21,15 @@ type (
 
 // DbRunner is a test runner for database assertions.
 type DbRunner struct {
-	db          *sql.DB
-	from        string
-	lateFilters []filterFromContext
-	validators  []dbValidator
+	db           *sql.DB
+	queryBuilder QueryBuilder
+	validators   []dbValidator
 }
 
 type (
 	RunnerModifier interface {
-		SetFrom(string)
+		SetQueryBuilder(QueryBuilder)
 		AddValidator(validator dbValidator)
-		AddContextFilter(filterFromContext)
 	}
 	// Option is a functional option for configuring the DbRunner.
 	Option func(RunnerModifier)
@@ -49,32 +48,24 @@ func NewDbRunner(db *sql.DB, opts ...Option) *DbRunner {
 	return r
 }
 
+func (r *DbRunner) AddValidator(validator dbValidator) {
+	r.validators = append(r.validators, validator)
+}
+
+func (r *DbRunner) SetQueryBuilder(qb QueryBuilder) {
+	r.queryBuilder = qb
+}
+
 func (r *DbRunner) Run(t testing.TB, rCtx stgctx.RunnerContext) error {
-	var filters map[string]any
-	for _, filterResolver := range r.lateFilters {
-		newFilter, err := filterResolver(rCtx)
-		if err != nil {
-			t.Fatalf("Failed to build late filters: %v", err)
-		}
-		maps.Copy(filters, newFilter)
-	}
-
-	var (
-		where = make([]string, 0, len(filters))
-		args  = make([]any, 0, len(filters))
-	)
-	for filterKey, filterValue := range filters {
-		where = append(where, fmt.Sprintf("%s = ?", filterKey))
-		args = append(args, filterValue)
-	}
 	for _, v := range r.validators {
-		query := fmt.Sprintf(
-			"SELECT %s FROM %s WHERE %s",
-			v.SelectionFields(), r.from, strings.Join(where, " AND "),
-		)
-
-		rows, err := r.db.Query(query, args...)
+		query, args, err := r.queryBuilder.Build(rCtx)
 		if err != nil {
+			t.Fatalf("Failed to build query: %v", err)
+			return err
+		}
+
+		var rows *sql.Rows
+		if rows, err = r.db.Query(query, args...); err != nil {
 			t.Fatalf("Failed to execute query %q: %v", query, err)
 			return err
 		}
@@ -85,16 +76,4 @@ func (r *DbRunner) Run(t testing.TB, rCtx stgctx.RunnerContext) error {
 		_ = rows.Close()
 	}
 	return nil
-}
-
-func (r *DbRunner) AddValidator(validator dbValidator) {
-	r.validators = append(r.validators, validator)
-}
-
-func (r *DbRunner) AddContextFilter(newFilter filterFromContext) {
-	r.lateFilters = append(r.lateFilters, newFilter)
-}
-
-func (r *DbRunner) SetFrom(s string) {
-	r.from = s
 }
