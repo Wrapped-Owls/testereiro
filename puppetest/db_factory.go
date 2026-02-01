@@ -8,8 +8,9 @@ import (
 )
 
 type (
-	DBFactory          = dbastidor.ConnectionFactory
-	DBConnectionConfig = dbastidor.ConnectionConfig
+	DBFactory           = dbastidor.ConnectionFactory
+	DBConnectionConfig  = dbastidor.ConnectionConfig
+	ConnectionPerformer = dbastidor.ConnectionPerformer
 )
 
 func ConnectDB(

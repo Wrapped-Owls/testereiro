@@ -25,9 +25,6 @@ func NewConnectionFactory(
 		connTimeout:   time.Second,
 		lifecycle:     NoOpLifecycle{},
 	}
-	if executeCreateDbStmt {
-		factory.lifecycle = NewSQLLifecycle(factory.rootDB)
-	}
 
 	factory.rootDB, err = factory.connPerformer.Execute(
 		ctx, ConnectionConfig{}, factory.connTimeout,
@@ -35,6 +32,11 @@ func NewConnectionFactory(
 	if err != nil {
 		return factory, err
 	}
+
+	if executeCreateDbStmt {
+		factory.lifecycle = NewSQLLifecycle(factory.rootDB)
+	}
+
 	return factory, nil
 }
 
