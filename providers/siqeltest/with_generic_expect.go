@@ -9,11 +9,12 @@ import (
 	"github.com/vinovest/sqlx"
 
 	"github.com/wrapped-owls/testereiro/puppetest/pkg/runners/dbrunner"
-	"github.com/wrapped-owls/testereiro/puppetest/pkg/runners/dbrunner/sanitizers"
 )
 
+type DbSanitizer[O any] func(expected, actual *O) error
+
 // WithExpect adds a validator that queries the database and compares the result with the expected object.
-func WithExpect[O any](expected O, sanitizer sanitizers.DbSanitizer[O]) dbrunner.Option {
+func WithExpect[O any](expected O, sanitizer DbSanitizer[O]) dbrunner.Option {
 	return func(modifier dbrunner.RunnerModifier) {
 		modifier.AddValidator(&expectValidator[O]{
 			expected:  expected,
@@ -24,7 +25,7 @@ func WithExpect[O any](expected O, sanitizer sanitizers.DbSanitizer[O]) dbrunner
 
 type expectValidator[O any] struct {
 	expected  O
-	sanitizer sanitizers.DbSanitizer[O]
+	sanitizer DbSanitizer[O]
 }
 
 func (v *expectValidator[O]) SelectionFields() string {
