@@ -11,6 +11,9 @@ import (
 	"github.com/wrapped-owls/testereiro/puppetest/pkg/runners"
 )
 
+// Context is the internal context object used on the test engine to take some objects from a given state
+type Context = stgctx.RunnerContext
+
 type Engine struct {
 	ts *httptest.Server
 	db *DBWrapper

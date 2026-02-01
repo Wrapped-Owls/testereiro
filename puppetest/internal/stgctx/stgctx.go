@@ -24,10 +24,6 @@ type runnerCtx struct {
 	storage *typedStorage
 }
 
-func (c *runnerCtx) Storage() Storage {
-	return c.storage
-}
-
 func NewRunnerContext(ctx context.Context) RunnerContext {
 	return &runnerCtx{
 		Context: ctx,
@@ -35,4 +31,19 @@ func NewRunnerContext(ctx context.Context) RunnerContext {
 			values: make(map[StorageKey]any),
 		},
 	}
+}
+
+func (c *runnerCtx) Storage() Storage {
+	return c.storage
+}
+
+func (c *runnerCtx) Value(key any) any {
+	if asStorageKey, ok := key.(StorageKey); ok {
+		if checkVal, found := c.storage.Load(asStorageKey); found {
+			return checkVal
+		}
+		return nil
+	}
+
+	return c.Context.Value(key)
 }
