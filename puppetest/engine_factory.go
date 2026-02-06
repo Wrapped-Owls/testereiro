@@ -50,7 +50,7 @@ func NewEngineFactory(
 
 func (fac EngineFactory) NewEngine(t testing.TB) *Engine {
 	engine := new(Engine)
-	var dbTeardown func() error
+	var dbTeardown func(ctx context.Context) error
 	if fac.dbFactory != nil {
 		subDb, err := fac.dbFactory.NewDatabase(t.Context(), t.Name())
 		if err != nil {
@@ -64,7 +64,9 @@ func (fac EngineFactory) NewEngine(t testing.TB) *Engine {
 		func() {
 			if dbTeardown != nil {
 				t.Log("Executing database teardown")
-				if err := dbTeardown(); err != nil {
+				ctx, cancel := context.WithCancel(context.Background())
+				defer cancel()
+				if err := dbTeardown(ctx); err != nil {
 					t.Error(err)
 				}
 			}

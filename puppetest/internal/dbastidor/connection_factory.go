@@ -48,7 +48,7 @@ func (fac *ConnectionFactory) NewDatabase(ctx context.Context, dbName string) (
 	newDb struct {
 		Connection *sql.DB
 		Name       string
-		Teardown   func() error
+		Teardown   func(ctx context.Context) error
 	},
 	err error,
 ) {
@@ -66,8 +66,8 @@ func (fac *ConnectionFactory) NewDatabase(ctx context.Context, dbName string) (
 		return newDb, err
 	}
 
-	newDb.Teardown = func() error {
-		return errors.Join(newDb.Connection.Close(), fac.lifecycle.Drop(ctx, newDb.Name))
+	newDb.Teardown = func(subCtx context.Context) error {
+		return errors.Join(newDb.Connection.Close(), fac.lifecycle.Drop(subCtx, newDb.Name))
 	}
 	return newDb, nil
 }
