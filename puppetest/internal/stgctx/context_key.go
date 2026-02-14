@@ -1,24 +1,19 @@
 package stgctx
 
-import "reflect"
+import "github.com/wrapped-owls/testereiro/puppetest/internal/keydef"
 
 type typeKey[V any] struct {
-	Tag string
+	keydef.TypedKey[V]
 }
 
-func (typeKey[V]) isKey() {
+func (typeKey[V]) isStorageKey() {
 	// Do nothing as it is a stub
 }
 
-func (typeKey[V]) Type() reflect.Type {
-	var v V
-	return reflect.TypeOf(v)
-}
-
 func NewKey[V any](_ ...V) StorageKey {
-	return typeKey[V]{}
+	return typeKey[V]{TypedKey: keydef.NewKey[V]()}
 }
 
 func NewTaggedKey[V any](tag string, _ ...V) StorageKey {
-	return typeKey[V]{Tag: tag}
+	return typeKey[V]{TypedKey: keydef.NewTaggedKey[V](tag)}
 }

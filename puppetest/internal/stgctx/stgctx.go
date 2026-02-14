@@ -1,9 +1,14 @@
 package stgctx
 
-import "context"
+import (
+	"context"
+
+	"github.com/wrapped-owls/testereiro/puppetest/internal/keydef"
+)
 
 type StorageKey interface {
-	isKey()
+	keydef.Key
+	isStorageKey()
 }
 
 // Storage handles type-safe storage of values.
