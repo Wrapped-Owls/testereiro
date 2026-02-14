@@ -2,11 +2,13 @@ package puppetest
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 	"net/http/httptest"
 	"testing"
 
 	"github.com/wrapped-owls/testereiro/puppetest/internal/dbastidor"
+	"github.com/wrapped-owls/testereiro/puppetest/internal/providerstore"
 	"github.com/wrapped-owls/testereiro/puppetest/internal/stgctx"
 	"github.com/wrapped-owls/testereiro/puppetest/pkg/runners"
 )
@@ -17,6 +19,7 @@ type Context = stgctx.RunnerContext
 type Engine struct {
 	ts *httptest.Server
 	db *DBWrapper
+	ps *providerstore.Store
 }
 
 func (e *Engine) BaseURL() string {
@@ -34,16 +37,21 @@ func (e *Engine) DB() *sql.DB {
 }
 
 func (e *Engine) Teardown() error {
+	var teardownErr error
+
 	if e.ts != nil {
 		e.ts.Close()
 	}
 	if e.db != nil && !e.db.IsZero() {
 		if dbErr := e.db.Teardown(); dbErr != nil {
-			return dbErr
+			teardownErr = errors.Join(teardownErr, dbErr)
 		}
 	}
+	if providerErr := e.teardownProviders(); providerErr != nil {
+		teardownErr = errors.Join(teardownErr, providerErr)
+	}
 
-	return nil
+	return teardownErr
 }
 
 func (e *Engine) Seed(seeds ...any) error {
