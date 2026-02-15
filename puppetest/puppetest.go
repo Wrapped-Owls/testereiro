@@ -17,9 +17,10 @@ import (
 type Context = stgctx.RunnerContext
 
 type Engine struct {
-	ts *httptest.Server
-	db *DBWrapper
-	ps *providerstore.Store
+	ts    *httptest.Server
+	db    *DBWrapper
+	ps    *providerstore.Store
+	hooks engineLifecycleHooks
 }
 
 func (e *Engine) BaseURL() string {
@@ -37,24 +38,46 @@ func (e *Engine) DB() *sql.DB {
 }
 
 func (e *Engine) Teardown() error {
-	var teardownErr error
+	teardownEvent := &EngineTeardownEvent{Engine: e}
+	if beforeHookErr := runHooks(teardownEvent, e.hooks.beforeTeardownHooks); beforeHookErr != nil {
+		return fmt.Errorf("before teardown hooks: %w", beforeHookErr)
+	}
+
+	var teardownErrs []error
 
 	if e.ts != nil {
 		e.ts.Close()
 	}
 	if e.db != nil && !e.db.IsZero() {
 		if dbErr := e.db.Teardown(); dbErr != nil {
-			teardownErr = errors.Join(teardownErr, dbErr)
+			teardownErrs = append(teardownErrs, dbErr)
 		}
 	}
 	if providerErr := e.teardownProviders(); providerErr != nil {
-		teardownErr = errors.Join(teardownErr, providerErr)
+		teardownErrs = append(teardownErrs, providerErr)
 	}
 
-	return teardownErr
+	if len(teardownErrs) > 0 {
+		if err := errors.Join(teardownErrs...); err != nil {
+			return fmt.Errorf("failed to run engine teardown: %w", err)
+		}
+	}
+
+	if afterHookErr := runHooks(teardownEvent, reverseHooks(e.hooks.afterTeardownHooks)); afterHookErr != nil {
+		return fmt.Errorf("after teardown hooks: %w", afterHookErr)
+	}
+	return nil
 }
 
 func (e *Engine) Seed(seeds ...any) error {
+	seedEvent := &EngineSeedEvent{
+		Engine: e,
+		Seeds:  append([]any(nil), seeds...),
+	}
+	if beforeHookErr := runHooks(seedEvent, e.hooks.beforeSeedHooks); beforeHookErr != nil {
+		return beforeHookErr
+	}
+
 	if e.db == nil || e.db.IsZero() {
 		return fmt.Errorf("database not initialized")
 	}
@@ -68,5 +91,24 @@ func (e *Engine) Seed(seeds ...any) error {
 
 func (e *Engine) Execute(t testing.TB, runner runners.Runner) error {
 	ctx := stgctx.NewRunnerContext(t.Context())
-	return runner.Run(t, ctx)
+	runEvent := &EngineRunEvent{
+		TB:     t,
+		Engine: e,
+		Runner: runner,
+		Ctx:    ctx,
+	}
+
+	if beforeHookErr := runHooks(runEvent, e.hooks.beforeRunHooks); beforeHookErr != nil {
+		return fmt.Errorf("failed to run `Engine.Execute` before hooks: %w", beforeHookErr)
+	}
+
+	if runErr := runner.Run(t, ctx); runErr != nil {
+		return fmt.Errorf("failed to execute runners on Engine: %w", runErr)
+	}
+
+	if afterHookErr := runHooks(runEvent, reverseHooks(e.hooks.afterRunHooks)); afterHookErr != nil {
+		return fmt.Errorf("failed to run `Engine.Execute` after hooks: %w", afterHookErr)
+	}
+
+	return nil
 }

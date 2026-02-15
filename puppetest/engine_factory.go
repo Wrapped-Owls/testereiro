@@ -2,6 +2,7 @@ package puppetest
 
 import (
 	"context"
+	"fmt"
 	"testing"
 
 	"github.com/wrapped-owls/testereiro/puppetest/internal/dbastidor"
@@ -10,8 +11,9 @@ import (
 type (
 	EngineExtension func(engine *Engine) error
 	EngineFactory   struct {
-		dbFactory  *dbastidor.ConnectionFactory
-		extensions []EngineExtension
+		dbFactory     *dbastidor.ConnectionFactory
+		extensions    []EngineExtension
+		hookLifecycle engineFactoryHookLifecycle
 	}
 	EngineFactoryOption func(*EngineFactory) error
 )
@@ -44,12 +46,21 @@ func NewEngineFactory(
 			return newFactory, err
 		}
 	}
+	newFactory.hookLifecycle.bind(newFactory)
 
 	return newFactory, nil
 }
 
-func (fac EngineFactory) NewEngine(t testing.TB) *Engine {
+func (fac *EngineFactory) NewEngine(t testing.TB) *Engine {
 	engine := new(Engine)
+	if createErr := fac.hookLifecycle.handleEngineCreation(t, engine); createErr != nil {
+		t.Fatal(createErr)
+	}
+
+	return engine
+}
+
+func (fac *EngineFactory) initEngine(t testing.TB, engine *Engine) error {
 	var dbTeardown func(ctx context.Context) error
 	if fac.dbFactory != nil {
 		subDb, err := fac.dbFactory.NewDatabase(t.Context(), t.Name())
@@ -84,12 +95,24 @@ func (fac EngineFactory) NewEngine(t testing.TB) *Engine {
 		}
 	}
 
-	return engine
+	return nil
 }
 
-func (fac EngineFactory) Close() error {
-	if fac.dbFactory != nil {
-		return fac.dbFactory.Close()
+func (fac *EngineFactory) closeOperation() error {
+	if fac.dbFactory == nil {
+		return nil
+	}
+	return fac.dbFactory.Close()
+}
+
+func (fac *EngineFactory) Close() error {
+	if fac == nil {
+		return nil
+	}
+
+	closeErr := fac.hookLifecycle.closeFactory()
+	if closeErr != nil {
+		return fmt.Errorf("factory close errors: %w", closeErr)
 	}
 	return nil
 }
