@@ -9,8 +9,9 @@ import (
 
 // Validator defines how to validate an HTTP response.
 type (
-	respObjectSanitizer[O any] func(expected, actual *O) error
-	Validator                  interface {
+	respObjectSanitizer[O any]  func(expected, actual *O) error
+	respObjectComparator[O any] func(t testing.TB, expected, actual O) bool
+	Validator                   interface {
 		Validate(t testing.TB, rCtx stgctx.RunnerContext, resp *http.Response)
 	}
 )
