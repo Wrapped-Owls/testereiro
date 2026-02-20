@@ -2,6 +2,7 @@ package puppetest
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"testing"
 
@@ -11,9 +12,11 @@ import (
 type (
 	EngineExtension func(engine *Engine) error
 	EngineFactory   struct {
-		dbFactory     *dbastidor.ConnectionFactory
-		extensions    []EngineExtension
-		hookLifecycle engineFactoryHookLifecycle
+		dbFactory           *dbastidor.ConnectionFactory
+		providers           map[ProviderKey]factoryProviderEntry
+		providerBinderOrder []ProviderKey
+		extensions          []EngineExtension
+		hookLifecycle       engineFactoryHookLifecycle
 	}
 	EngineFactoryOption func(*EngineFactory) error
 )
@@ -89,6 +92,10 @@ func (fac *EngineFactory) initEngine(t testing.TB, engine *Engine) error {
 		},
 	)
 
+	if bindErr := fac.bindFactoryProviders(t.Context(), engine); bindErr != nil {
+		return fmt.Errorf("failed to bind factory providers on engine: %w", bindErr)
+	}
+
 	for _, extension := range fac.extensions {
 		if err := extension(engine); err != nil {
 			t.Fatal(err)
@@ -99,10 +106,17 @@ func (fac *EngineFactory) initEngine(t testing.TB, engine *Engine) error {
 }
 
 func (fac *EngineFactory) closeOperation() error {
-	if fac.dbFactory == nil {
-		return nil
+	var closeErrs []error
+	if fac.dbFactory != nil {
+		if err := fac.dbFactory.Close(); err != nil {
+			closeErrs = append(closeErrs, err)
+		}
 	}
-	return fac.dbFactory.Close()
+	if providerErr := fac.teardownProviders(context.Background()); providerErr != nil {
+		closeErrs = append(closeErrs, providerErr)
+	}
+
+	return errors.Join(closeErrs...)
 }
 
 func (fac *EngineFactory) Close() error {
