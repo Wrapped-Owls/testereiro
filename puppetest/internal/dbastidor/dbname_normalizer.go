@@ -2,7 +2,7 @@ package dbastidor
 
 import "unicode"
 
-func dbNameNormalizer(name string) string {
+func NormalizeDBName(name string) string {
 	nameBuilder := ([]rune(name))[:0]
 	for _, character := range name {
 		character = unicode.ToLower(character)
@@ -13,6 +13,6 @@ func dbNameNormalizer(name string) string {
 		nameBuilder = append(nameBuilder, character)
 	}
 
-	dbName := "test_" + string(nameBuilder)
+	dbName := string(nameBuilder)
 	return dbName
 }

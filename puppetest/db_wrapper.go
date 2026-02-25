@@ -2,6 +2,8 @@ package puppetest
 
 import (
 	"database/sql"
+
+	"github.com/wrapped-owls/testereiro/puppetest/internal/dbastidor"
 )
 
 type DBWrapper struct {
@@ -10,7 +12,7 @@ type DBWrapper struct {
 }
 
 func NewDBWrapper(name string, conn *sql.DB) *DBWrapper {
-	return &DBWrapper{name: name, conn: conn}
+	return &DBWrapper{name: dbastidor.NormalizeDBName(name), conn: conn}
 }
 
 func (dw *DBWrapper) Teardown() error {

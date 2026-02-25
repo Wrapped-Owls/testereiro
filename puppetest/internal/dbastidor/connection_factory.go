@@ -52,7 +52,7 @@ func (fac *ConnectionFactory) NewDatabase(ctx context.Context, dbName string) (
 	},
 	err error,
 ) {
-	newDb.Name = dbNameNormalizer(dbName)
+	newDb.Name = NormalizeDBName(dbName)
 	// The database creation must be done initially to allow connecting directly with it
 	if err = fac.lifecycle.Create(ctx, newDb.Name); err != nil {
 		return newDb, err
