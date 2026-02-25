@@ -1,10 +1,12 @@
 package puppetest
 
 import (
+	"context"
 	"database/sql"
 	"errors"
 	"fmt"
 	"net/http/httptest"
+	"slices"
 	"testing"
 
 	"github.com/wrapped-owls/testereiro/puppetest/internal/dbastidor"
@@ -14,9 +16,15 @@ import (
 )
 
 // Context is the internal context object used on the test engine to take some objects from a given state
-type Context = stgctx.RunnerContext
+type (
+	Context      = stgctx.RunnerContext
+	SeedProvider interface {
+		ExecuteSeed(engine *Engine) error
+	}
+)
 
 type Engine struct {
+	ctx   context.Context
 	ts    *httptest.Server
 	db    *DBWrapper
 	ps    *providerstore.Store
@@ -35,6 +43,22 @@ func (e *Engine) DB() *sql.DB {
 		return nil
 	}
 	return e.db.Connection()
+}
+
+func (e *Engine) DBName() string {
+	if e.db == nil {
+		return ""
+	}
+
+	return e.db.name
+}
+
+func (e *Engine) Context() context.Context {
+	if e.ctx == nil {
+		return context.Background()
+	}
+
+	return e.ctx
 }
 
 func (e *Engine) Teardown() error {
@@ -87,6 +111,31 @@ func (e *Engine) Seed(seeds ...any) error {
 		}
 	}
 	return nil
+}
+
+func (e *Engine) SeedWithProvider(providers ...SeedProvider) error {
+	seedEvent := &EngineSeedEvent{
+		Engine:        e,
+		ProviderSeeds: slices.Clone(providers),
+	}
+	if beforeHookErr := runHooks(seedEvent, e.hooks.beforeSeedHooks); beforeHookErr != nil {
+		return beforeHookErr
+	}
+
+	var seedErrs []error
+	for index, provider := range providers {
+		if provider == nil {
+			seedErrs = append(seedErrs, fmt.Errorf("seed provider at index %d is nil", index))
+			continue
+		}
+		if err := provider.ExecuteSeed(e); err != nil {
+			seedErrs = append(
+				seedErrs,
+				fmt.Errorf("seed provider at index %d failed: %w", index, err),
+			)
+		}
+	}
+	return errors.Join(seedErrs...)
 }
 
 func (e *Engine) Execute(t testing.TB, runner runners.Runner) error {

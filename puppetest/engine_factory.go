@@ -68,10 +68,12 @@ func (fac *EngineFactory) NewEngine(t testing.TB) *Engine {
 
 func (fac *EngineFactory) initEngine(t testing.TB, engine *Engine) error {
 	var dbTeardown func(ctx context.Context) error
+	engine.ctx = t.Context()
+	engine.db = NewDBWrapper(t.Name()+"_puppetest", nil) // Init name only DBWrapper
 	if fac.dbFactory != nil {
 		subDb, err := fac.dbFactory.NewDatabase(t.Context(), t.Name())
 		if err != nil {
-			t.Fatal(err)
+			return fmt.Errorf("create database for test %q: %w", t.Name(), err)
 		}
 		engine.db = NewDBWrapper(subDb.Name, subDb.Connection)
 		dbTeardown = subDb.Teardown

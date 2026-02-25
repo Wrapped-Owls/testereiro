@@ -27,8 +27,9 @@ type EngineTeardownEvent struct {
 }
 
 type EngineSeedEvent struct {
-	Engine *Engine
-	Seeds  []any
+	Engine        *Engine
+	Seeds         []any
+	ProviderSeeds []SeedProvider
 }
 
 type FactoryCloseEvent struct {
