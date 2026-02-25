@@ -4,14 +4,9 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"slices"
-)
 
-type factoryProviderEntry struct {
-	value    any
-	bind     factoryProviderBinder
-	teardown func(context.Context) error
-}
+	"github.com/wrapped-owls/testereiro/puppetest/internal/providerstore"
+)
 
 type (
 	FactoryProviderBinder[T any] func(ctx context.Context, engine *Engine, value *T) error
@@ -31,59 +26,29 @@ func RegisterFactoryProvider[T any](
 	if key == nil {
 		return errors.New("factory provider key is nil")
 	}
-	if value == nil {
-		return errors.New("factory provider value is nil")
-	}
 
-	if factory.providers == nil {
-		factory.providers = make(map[ProviderKey]factoryProviderEntry)
-	}
-	if _, exists := factory.providers[key]; exists {
+	if _, exists := factory.providerStore().Load(key); exists {
 		return fmt.Errorf("factory provider %s already registered", factoryProviderLabel(key))
 	}
 
-	var internalBind factoryProviderBinder
 	if bind != nil {
-		internalBind = func(ctx context.Context, engine *Engine) error {
+		if factory.binders == nil {
+			factory.binders = make(map[ProviderKey]factoryProviderBinder)
+		}
+		factory.binders[key] = func(ctx context.Context, engine *Engine) error {
 			return bind(ctx, engine, value)
 		}
 	}
 
-	var internalTeardown func(context.Context) error
-	if teardown != nil {
-		internalTeardown = func(ctx context.Context) error {
-			return teardown(ctx, value)
-		}
-	}
-
-	factory.providers[key] = factoryProviderEntry{
-		value:    value,
-		bind:     internalBind,
-		teardown: internalTeardown,
-	}
-	factory.providerBinderOrder = append(factory.providerBinderOrder, key)
-	return nil
+	return providerstore.SaveProvider(factory.providerStore(), key, value, teardown)
 }
 
 func FactoryProvider[T any](factory *EngineFactory, key ProviderKey) (*T, bool) {
-	if factory == nil || key == nil || factory.providers == nil {
-		return nil, false
-	}
-
-	entry, found := factory.providers[key]
-	if !found || entry.value == nil {
-		return nil, false
-	}
-
-	casted, ok := entry.value.(*T)
-	if !ok || casted == nil {
-		return nil, false
-	}
-	return casted, true
+	return ResolveProvider[T](factory, key)
 }
 
 func (fac *EngineFactory) bindFactoryProviders(ctx context.Context, engine *Engine) error {
-	if fac == nil || len(fac.providerBinderOrder) == 0 {
+	if fac == nil || len(fac.binders) == 0 {
 		return nil
 	}
 	if engine == nil {
@@ -91,12 +56,12 @@ func (fac *EngineFactory) bindFactoryProviders(ctx context.Context, engine *Engi
 	}
 
 	var bindErrs []error
-	for _, key := range fac.providerBinderOrder {
-		entry, exists := fac.providers[key]
-		if !exists || entry.bind == nil {
+	for _, key := range fac.ps.Keys() {
+		bindFn, exists := fac.binders[key]
+		if !exists || bindFn == nil {
 			continue
 		}
-		if err := entry.bind(ctx, engine); err != nil {
+		if err := bindFn(ctx, engine); err != nil {
 			bindErrs = append(
 				bindErrs,
 				fmt.Errorf("factory provider %s bind failed: %w", factoryProviderLabel(key), err),
@@ -107,30 +72,16 @@ func (fac *EngineFactory) bindFactoryProviders(ctx context.Context, engine *Engi
 }
 
 func (fac *EngineFactory) teardownProviders(ctx context.Context) error {
-	if fac == nil || len(fac.providerBinderOrder) == 0 {
+	if fac == nil {
 		return nil
 	}
 
-	var teardownErrs []error
-	for _, key := range slices.Backward(fac.providerBinderOrder) {
-		entry, exists := fac.providers[key]
-		if !exists || entry.teardown == nil {
-			continue
-		}
-		if err := entry.teardown(ctx); err != nil {
-			teardownErrs = append(
-				teardownErrs, fmt.Errorf(
-					"factory provider %s teardown failed: %w",
-					factoryProviderLabel(key), err,
-				),
-			)
-		}
+	fac.binders = nil
+	if fac.ps == nil {
+		return nil
 	}
 
-	fac.providers = nil
-	fac.providerBinderOrder = nil
-
-	return errors.Join(teardownErrs...)
+	return fac.ps.Teardown(ctx)
 }
 
 func factoryProviderLabel(key ProviderKey) string {

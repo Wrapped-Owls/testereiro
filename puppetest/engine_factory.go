@@ -7,19 +7,27 @@ import (
 	"testing"
 
 	"github.com/wrapped-owls/testereiro/puppetest/internal/dbastidor"
+	"github.com/wrapped-owls/testereiro/puppetest/internal/providerstore"
 )
 
 type (
 	EngineExtension func(engine *Engine) error
 	EngineFactory   struct {
-		dbFactory           *dbastidor.ConnectionFactory
-		providers           map[ProviderKey]factoryProviderEntry
-		providerBinderOrder []ProviderKey
-		extensions          []EngineExtension
-		hookLifecycle       engineFactoryHookLifecycle
+		dbFactory     *dbastidor.ConnectionFactory
+		ps            *providerstore.Store
+		binders       map[ProviderKey]factoryProviderBinder
+		extensions    []EngineExtension
+		hookLifecycle engineFactoryHookLifecycle
 	}
 	EngineFactoryOption func(*EngineFactory) error
 )
+
+func (fac *EngineFactory) providerStore() *providerstore.Store {
+	if fac.ps == nil {
+		fac.ps = providerstore.New()
+	}
+	return fac.ps
+}
 
 func WithConnectionFactory(
 	connPerformer dbastidor.ConnectionPerformer, executeDbCreateStmt bool,

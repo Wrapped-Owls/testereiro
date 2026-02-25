@@ -64,6 +64,22 @@ func (s *Store) Save(key Key, value any, teardown func(context.Context) error) e
 	return nil
 }
 
+func SaveProvider[T any](
+	s *Store,
+	key Key,
+	value *T,
+	teardown func(context.Context, *T) error,
+) error {
+	var internalTeardown func(context.Context) error
+	if teardown != nil {
+		internalTeardown = func(ctx context.Context) error {
+			return teardown(ctx, value)
+		}
+	}
+
+	return s.Save(key, value, internalTeardown)
+}
+
 func (s *Store) Load(key Key) (any, bool) {
 	if s == nil || key == nil {
 		return nil, false
@@ -114,6 +130,16 @@ func (s *Store) Teardown(ctx context.Context) error {
 		}
 	}
 	return teardownErr
+}
+
+func (s *Store) Keys() []Key {
+	if s == nil {
+		return nil
+	}
+
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	return slices.Clone(s.order)
 }
 
 func keyLabel(key Key) string {

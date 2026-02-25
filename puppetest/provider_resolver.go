@@ -1,0 +1,35 @@
+package puppetest
+
+import "github.com/wrapped-owls/testereiro/puppetest/internal/providerstore"
+
+type ProviderKey = providerstore.Key
+
+func NewProviderKey[V any](_ ...V) ProviderKey {
+	return providerstore.NewKey[V]()
+}
+
+func NewTaggedProviderKey[V any](tag string, _ ...V) ProviderKey {
+	return providerstore.NewTaggedKey[V](tag)
+}
+
+type ProviderResolver interface {
+	providerStore() *providerstore.Store
+}
+
+func ResolveProvider[T any](resolver ProviderResolver, key ProviderKey) (*T, bool) {
+	if resolver == nil || key == nil {
+		return nil, false
+	}
+
+	ps := resolver.providerStore()
+	value, found := ps.Load(key)
+	if !found || value == nil {
+		return nil, false
+	}
+
+	casted, ok := value.(*T)
+	if !ok || casted == nil {
+		return nil, false
+	}
+	return casted, true
+}
