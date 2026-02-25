@@ -45,10 +45,7 @@ func TestEngineFactory_ProviderTeardownOnFactoryClose(t *testing.T) {
 
 	teardownCalled := false
 	if err = RegisterFactoryProvider(
-		factory,
-		key,
-		value,
-		nil,
+		factory, key, value, nil,
 		func(_ context.Context, _ *sample) error {
 			teardownCalled = true
 			return nil
@@ -79,10 +76,7 @@ func TestEngineFactory_ProviderTeardownError(t *testing.T) {
 	expectedErr := errors.New("factory provider teardown failed")
 
 	if err = RegisterFactoryProvider(
-		factory,
-		key,
-		value,
-		nil,
+		factory, key, value, nil,
 		func(_ context.Context, _ *sample) error {
 			return expectedErr
 		},
@@ -114,15 +108,8 @@ func TestEngineFactory_RegisterFactoryProvider_BindsOnNewEngine(t *testing.T) {
 
 	factory, err := NewEngineFactory(func(fac *EngineFactory) error {
 		return RegisterFactoryProvider(
-			fac,
-			factoryProviderKey,
-			value,
-			func(
-				_ context.Context,
-				_ *EngineFactory,
-				engine *Engine,
-				resource *factorySample,
-			) error {
+			fac, factoryProviderKey, value,
+			func(_ context.Context, engine *Engine, resource *factorySample) error {
 				binderCalled = true
 				derived := &engineSample{Name: resource.Name}
 				return SetProvider(engine, engineProviderKey, derived, nil)
@@ -156,10 +143,8 @@ func TestEngineFactory_FactoryProvidersBindBeforeExtensions(t *testing.T) {
 	factory, err := NewEngineFactory(
 		func(fac *EngineFactory) error {
 			return RegisterFactoryProvider(
-				fac,
-				factoryProviderKey,
-				&value,
-				func(_ context.Context, _ *EngineFactory, engine *Engine, resource *int) error {
+				fac, factoryProviderKey, &value,
+				func(_ context.Context, engine *Engine, resource *int) error {
 					return SetProvider(engine, engineProviderKey, resource, nil)
 				},
 				nil,
@@ -204,10 +189,8 @@ func TestEngineFactory_BindFactoryProviders_ReturnsError(t *testing.T) {
 
 	factory, err := NewEngineFactory(func(fac *EngineFactory) error {
 		return RegisterFactoryProvider(
-			fac,
-			factoryProviderKey,
-			&value,
-			func(_ context.Context, _ *EngineFactory, _ *Engine, _ *int) error {
+			fac, factoryProviderKey, &value,
+			func(_ context.Context, _ *Engine, _ *int) error {
 				return expectedErr
 			},
 			nil,

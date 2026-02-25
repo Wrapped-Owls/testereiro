@@ -14,13 +14,8 @@ type factoryProviderEntry struct {
 }
 
 type (
-	FactoryProviderBinder[T any] func(
-		ctx context.Context,
-		factory *EngineFactory,
-		engine *Engine,
-		value *T,
-	) error
-	factoryProviderBinder func(context.Context, *EngineFactory, *Engine) error
+	FactoryProviderBinder[T any] func(ctx context.Context, engine *Engine, value *T) error
+	factoryProviderBinder        func(context.Context, *Engine) error
 )
 
 func RegisterFactoryProvider[T any](
@@ -49,8 +44,8 @@ func RegisterFactoryProvider[T any](
 
 	var internalBind factoryProviderBinder
 	if bind != nil {
-		internalBind = func(ctx context.Context, fac *EngineFactory, engine *Engine) error {
-			return bind(ctx, fac, engine, value)
+		internalBind = func(ctx context.Context, engine *Engine) error {
+			return bind(ctx, engine, value)
 		}
 	}
 
@@ -101,7 +96,7 @@ func (fac *EngineFactory) bindFactoryProviders(ctx context.Context, engine *Engi
 		if !exists || entry.bind == nil {
 			continue
 		}
-		if err := entry.bind(ctx, fac, engine); err != nil {
+		if err := entry.bind(ctx, engine); err != nil {
 			bindErrs = append(
 				bindErrs,
 				fmt.Errorf("factory provider %s bind failed: %w", factoryProviderLabel(key), err),
