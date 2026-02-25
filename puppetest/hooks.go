@@ -2,6 +2,7 @@ package puppetest
 
 import (
 	"errors"
+	"fmt"
 	"slices"
 	"testing"
 
@@ -66,7 +67,11 @@ type engineLifecycleHooks struct {
 
 func runHooks[T any, F ~func(T) error](event T, hooks []F) error {
 	var hookErrs []error
-	for _, hook := range hooks {
+	for index, hook := range hooks {
+		if hook == nil {
+			hookErrs = append(hookErrs, fmt.Errorf("hook at index %d is nil", index))
+			continue
+		}
 		if err := hook(event); err != nil {
 			hookErrs = append(hookErrs, err)
 		}

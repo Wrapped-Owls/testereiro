@@ -47,7 +47,7 @@ func (l *engineFactoryHookLifecycle) handleEngineCreation(t testing.TB, engine *
 
 	beforeHookErr := runHooks(createEvent, l.beforeEngineCreateHooks)
 	if beforeHookErr != nil {
-		return fmt.Errorf("before-engine-create hooks failed: %v", beforeHookErr)
+		return fmt.Errorf("before-engine-create hooks failed: %w", beforeHookErr)
 	}
 
 	if initErr := l.factory.initEngine(t, engine); initErr != nil {
@@ -70,10 +70,13 @@ func (l *engineFactoryHookLifecycle) closeFactory() error {
 
 	beforeHookErr := runHooks(closeEvent, l.beforeFactoryCloseHooks)
 	if beforeHookErr != nil {
-		return beforeHookErr
+		return fmt.Errorf("before-factory-close hooks failed: %w", beforeHookErr)
 	}
 
 	closeErr := l.factory.closeOperation()
 	afterHookErr := runHooks(closeEvent, reverseHooks(l.afterFactoryCloseHooks))
+	if afterHookErr != nil {
+		afterHookErr = fmt.Errorf("after-factory-close hooks failed: %w", afterHookErr)
+	}
 	return errors.Join(closeErr, afterHookErr)
 }

@@ -28,8 +28,11 @@ func WithConnectionFactory(
 		dbFactory, err := dbastidor.NewConnectionFactory(
 			context.Background(), executeDbCreateStmt, connPerformer,
 		)
+		if err != nil {
+			return fmt.Errorf("create connection factory: %w", err)
+		}
 		fac.dbFactory = dbFactory
-		return err
+		return nil
 	}
 }
 
@@ -44,9 +47,9 @@ func NewEngineFactory(
 	options ...EngineFactoryOption,
 ) (*EngineFactory, error) {
 	newFactory := &EngineFactory{}
-	for _, opt := range options {
+	for index, opt := range options {
 		if err := opt(newFactory); err != nil {
-			return newFactory, err
+			return nil, fmt.Errorf("apply engine factory option at index %d: %w", index, err)
 		}
 	}
 	newFactory.hookLifecycle.bind(newFactory)
@@ -98,7 +101,7 @@ func (fac *EngineFactory) initEngine(t testing.TB, engine *Engine) error {
 
 	for _, extension := range fac.extensions {
 		if err := extension(engine); err != nil {
-			t.Fatal(err)
+			return fmt.Errorf("apply engine extension: %w", err)
 		}
 	}
 
