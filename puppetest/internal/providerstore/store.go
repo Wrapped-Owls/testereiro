@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"runtime"
+	"slices"
 	"sync"
 	"weak"
 )
@@ -88,17 +89,18 @@ func (s *Store) Teardown(ctx context.Context) error {
 	}
 
 	s.mu.Lock()
-	orderedEntries := make([]entry, 0, len(s.order))
-	for _, key := range s.order {
-		orderedEntries = append(orderedEntries, s.entries[key])
-	}
+	orderedKeys := slices.Clone(s.order)
+	entriesByKey := s.entries
 	s.entries = make(map[Key]entry)
 	s.order = nil
 	s.mu.Unlock()
 
 	var teardownErr error
-	for idx := len(orderedEntries) - 1; idx >= 0; idx-- {
-		storeEntry := orderedEntries[idx]
+	for _, key := range slices.Backward(orderedKeys) {
+		storeEntry, exists := entriesByKey[key]
+		if !exists {
+			continue
+		}
 		if storeEntry.teardown != nil {
 			if err := storeEntry.teardown(ctx); err != nil {
 				teardownErr = errors.Join(
