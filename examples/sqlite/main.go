@@ -69,7 +69,7 @@ func (s *GameStore) handleGetGameByID(w http.ResponseWriter, r *http.Request) {
 		statusErr := http.StatusInternalServerError
 		if errors.Is(err, sql.ErrNoRows) {
 			statusErr = http.StatusNotFound
-			err = fmt.Errorf("could not find game with id `%v`: %w", id, err)
+			err = fmt.Errorf("could not find game with id %d: %w", id, err)
 		}
 
 		http.Error(w, err.Error(), statusErr)
