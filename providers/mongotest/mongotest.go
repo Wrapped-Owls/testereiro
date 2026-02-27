@@ -5,7 +5,7 @@ import (
 
 	"go.mongodb.org/mongo-driver/v2/mongo"
 
-	"github.com/wrapped-owls/testereiro/providers/mongotest/pkg/runners/mongorunner"
+	"github.com/wrapped-owls/testereiro/providers/mongotest/pkg/mongochecker"
 	"github.com/wrapped-owls/testereiro/puppetest"
 )
 
@@ -13,8 +13,8 @@ var databaseProviderKey = puppetest.NewTaggedProviderKey[mongo.Database]("mongo.
 
 func NewMongoRunnerFromEngine(
 	engine *puppetest.Engine,
-	opts ...mongorunner.Option,
-) (*mongorunner.MongoRunner, error) {
+	opts ...mongochecker.Option,
+) (*mongochecker.MongoChecker, error) {
 	database, err := DatabaseFromEngine(engine)
 	if err != nil {
 		return nil, err
@@ -23,5 +23,5 @@ func NewMongoRunnerFromEngine(
 		return nil, fmt.Errorf("mongo database is nil")
 	}
 
-	return mongorunner.NewMongoRunner(database, opts...), nil
+	return mongochecker.New(database, opts...), nil
 }
