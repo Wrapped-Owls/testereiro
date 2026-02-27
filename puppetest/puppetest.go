@@ -23,6 +23,14 @@ type (
 	}
 )
 
+func SaveOnCtx[V any](ctx Context, val V) {
+	stgctx.SaveOnCtx(ctx, val)
+}
+
+func LoadFromCtx[V any](ctx Context) (V, bool) {
+	return stgctx.LoadFromCtx[V](ctx)
+}
+
 type Engine struct {
 	ctx   context.Context
 	ts    *httptest.Server

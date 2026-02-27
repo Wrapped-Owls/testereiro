@@ -16,46 +16,6 @@ func WithQueryBuilder(builder QueryBuilder) Option {
 	}
 }
 
-func WithBsonQuery(collection string, filter bson.M) Option {
-	return func(modifier CheckerModifier) {
-		modifier.SetQueryBuilder(NewBsonQuery(collection, filter))
-	}
-}
-
-func WithBsonQueryFromCtx(
-	collection string, filterFn func(ctx puppetest.Context) (bson.M, error),
-) Option {
-	return func(modifier CheckerModifier) {
-		builder := NewBsonQuery(collection, nil)
-		builder.AddFilter(filterFn)
-		modifier.SetQueryBuilder(builder)
-	}
-}
-
-func WithFindOptions(opts ...options.Lister[options.FindOptions]) Option {
-	return func(modifier CheckerModifier) {
-		modifier.SetQueryOptions(opts)
-	}
-}
-
-func WithFindOneOptions(opts ...options.Lister[options.FindOneOptions]) Option {
-	return func(modifier CheckerModifier) {
-		modifier.SetQueryOptions(opts)
-	}
-}
-
-func WithAggregateOptions(opts ...options.Lister[options.AggregateOptions]) Option {
-	return func(modifier CheckerModifier) {
-		modifier.SetQueryOptions(opts)
-	}
-}
-
-func WithCountOptions(opts ...options.Lister[options.CountOptions]) Option {
-	return func(modifier CheckerModifier) {
-		modifier.SetQueryOptions(opts)
-	}
-}
-
 func ExpectDocs[T any](expected []T, sanitizer ...objSanitizer[T]) Option {
 	return func(modifier CheckerModifier) {
 		v := genericValidator[T, []T]{ExpectedList: expected}
@@ -82,6 +42,22 @@ func WithAggregateQuery(collection string, pipeline bson.A) Option {
 	}
 }
 
+func WithAggregateQueryFromCtx(
+	collection string, pipelineFn func(ctx puppetest.Context) (bson.A, error),
+) Option {
+	return func(modifier CheckerModifier) {
+		builder := NewAggregateQuery(collection, nil)
+		builder.AddPipeline(pipelineFn)
+		modifier.SetQueryBuilder(builder)
+	}
+}
+
+func WithAggregateOptions(opts ...options.Lister[options.AggregateOptions]) Option {
+	return func(modifier CheckerModifier) {
+		modifier.SetQueryOptions(opts)
+	}
+}
+
 func WithFindOneQuery(collection string, filter bson.M) Option {
 	return func(modifier CheckerModifier) {
 		qb := NewBsonQuery(collection, filter)
@@ -90,11 +66,51 @@ func WithFindOneQuery(collection string, filter bson.M) Option {
 	}
 }
 
+func WithFindOneQueryFromCtx(
+	collection string, filterFn func(ctx puppetest.Context) (bson.M, error),
+) Option {
+	return func(modifier CheckerModifier) {
+		builder := NewBsonQuery(collection, nil)
+		builder.AddFilter(filterFn)
+		builder.SetOperation(OpFindOne)
+		modifier.SetQueryBuilder(builder)
+	}
+}
+
+func WithFindOptions(opts ...options.Lister[options.FindOptions]) Option {
+	return func(modifier CheckerModifier) {
+		modifier.SetQueryOptions(opts)
+	}
+}
+
+func WithFindOneOptions(opts ...options.Lister[options.FindOneOptions]) Option {
+	return func(modifier CheckerModifier) {
+		modifier.SetQueryOptions(opts)
+	}
+}
+
 func WithCountQuery(collection string, filter bson.M) Option {
 	return func(modifier CheckerModifier) {
 		qb := NewBsonQuery(collection, filter)
 		qb.SetOperation(OpCount)
 		modifier.SetQueryBuilder(qb)
+	}
+}
+
+func WithCountQueryFromCtx(
+	collection string, filterFn func(ctx puppetest.Context) (bson.M, error),
+) Option {
+	return func(modifier CheckerModifier) {
+		builder := NewBsonQuery(collection, nil)
+		builder.AddFilter(filterFn)
+		builder.SetOperation(OpCount)
+		modifier.SetQueryBuilder(builder)
+	}
+}
+
+func WithCountOptions(opts ...options.Lister[options.CountOptions]) Option {
+	return func(modifier CheckerModifier) {
+		modifier.SetQueryOptions(opts)
 	}
 }
 

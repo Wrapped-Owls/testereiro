@@ -66,32 +66,52 @@ func (b *BsonQueryBuilder) Build(ctx puppetest.Context) (Query, error) {
 	}, nil
 }
 
+type pipelineFromContext func(ctx puppetest.Context) (bson.A, error)
+
 type AggregateQueryBuilder struct {
 	collection   string
-	pipeline     bson.A
+	pipelines    []pipelineFromContext
 	queryOptions any
 }
 
 func NewAggregateQuery(collection string, pipeline bson.A) *AggregateQueryBuilder {
-	return &AggregateQueryBuilder{
+	builder := &AggregateQueryBuilder{
 		collection: collection,
-		pipeline:   pipeline,
 	}
+	if len(pipeline) > 0 {
+		builder.AddPipeline(func(_ puppetest.Context) (bson.A, error) {
+			return pipeline, nil
+		})
+	}
+	return builder
+}
+
+func (a *AggregateQueryBuilder) AddPipeline(pipeline pipelineFromContext) {
+	a.pipelines = append(a.pipelines, pipeline)
 }
 
 func (a *AggregateQueryBuilder) SetOptions(opts any) {
 	a.queryOptions = opts
 }
 
-func (a *AggregateQueryBuilder) Build(_ puppetest.Context) (Query, error) {
+func (a *AggregateQueryBuilder) Build(ctx puppetest.Context) (Query, error) {
 	if a.collection == "" {
 		return Query{}, fmt.Errorf("collection is required")
+	}
+
+	finalPipeline := bson.A{}
+	for _, pipeline := range a.pipelines {
+		resolved, err := pipeline(ctx)
+		if err != nil {
+			return Query{}, fmt.Errorf("failed to resolve query pipeline: %w", err)
+		}
+		finalPipeline = append(finalPipeline, resolved...)
 	}
 
 	return Query{
 		Collection: a.collection,
 		Operation:  OpAggregate,
-		Pipeline:   a.pipeline,
+		Pipeline:   finalPipeline,
 		Options:    a.queryOptions,
 	}, nil
 }
