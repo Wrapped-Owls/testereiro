@@ -6,7 +6,7 @@ import (
 	"slices"
 	"testing"
 
-	"github.com/wrapped-owls/testereiro/puppetest/pkg/runners"
+	"github.com/wrapped-owls/testereiro/puppetest/pkg/atores"
 )
 
 type EngineCreateEvent struct {
@@ -18,7 +18,7 @@ type EngineCreateEvent struct {
 type EngineRunEvent struct {
 	TB     testing.TB
 	Engine *Engine
-	Runner runners.Runner
+	Runner atores.Runner
 	Ctx    Context
 }
 

@@ -8,7 +8,7 @@ import (
 
 	"github.com/vinovest/sqlx"
 
-	"github.com/wrapped-owls/testereiro/puppetest/pkg/runners/dbrunner"
+	"github.com/wrapped-owls/testereiro/puppetest/pkg/atores/bancoche"
 )
 
 type (
@@ -17,12 +17,12 @@ type (
 )
 
 // WithExpect adds a validator that queries the database and compares the result with the expected object.
-func WithExpect[O any](expected O, sanitizer ...DbSanitizer[O]) dbrunner.Option {
+func WithExpect[O any](expected O, sanitizer ...DbSanitizer[O]) bancoche.Option {
 	var selectedSanitizer DbSanitizer[O]
 	if len(sanitizer) > 0 {
 		selectedSanitizer = sanitizer[0]
 	}
-	return func(modifier dbrunner.RunnerModifier) {
+	return func(modifier bancoche.RunnerModifier) {
 		modifier.AddValidator(&expectValidator[O]{
 			expected:   expected,
 			sanitizer:  selectedSanitizer,
@@ -31,8 +31,8 @@ func WithExpect[O any](expected O, sanitizer ...DbSanitizer[O]) dbrunner.Option 
 	}
 }
 
-func WithExpectWithComparator[O any](expected O, comparator DbComparator[O]) dbrunner.Option {
-	return func(modifier dbrunner.RunnerModifier) {
+func WithExpectWithComparator[O any](expected O, comparator DbComparator[O]) bancoche.Option {
+	return func(modifier bancoche.RunnerModifier) {
 		modifier.AddValidator(&expectValidator[O]{
 			expected:   expected,
 			comparator: comparator,

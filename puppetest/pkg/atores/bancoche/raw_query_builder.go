@@ -1,4 +1,4 @@
-package dbrunner
+package bancoche
 
 import "github.com/wrapped-owls/testereiro/puppetest/internal/stgctx"
 

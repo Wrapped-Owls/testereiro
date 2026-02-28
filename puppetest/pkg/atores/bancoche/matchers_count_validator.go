@@ -1,4 +1,4 @@
-package dbrunner
+package bancoche
 
 import (
 	"database/sql"

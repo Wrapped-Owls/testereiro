@@ -10,7 +10,7 @@ import (
 	"github.com/vinovest/sqlx"
 
 	"github.com/wrapped-owls/testereiro/examples/balatro_mysql/db/daos"
-	"github.com/wrapped-owls/testereiro/puppetest/pkg/runners/dbrunner"
+	"github.com/wrapped-owls/testereiro/puppetest/pkg/atores/bancoche"
 )
 
 func TestDatabaseOnlyAssertion(t *testing.T) {
@@ -36,11 +36,11 @@ func TestDatabaseOnlyAssertion(t *testing.T) {
 	err := engine.Seed(seedJokers[0], seedJokers[1], seedJokers[2])
 	assert.NoError(t, err)
 
-	runner := dbrunner.NewDbRunner(
+	runner := bancoche.New(
 		engine.DB(),
-		dbrunner.WithMapQuery("jokers", map[string]any{"rarity": "Common"}),
-		// dbrunner.WithQuery(dbrunner.NewRawQuery("SELECT * FROM jokers WHERE rarity = ?", "Common")),
-		dbrunner.WithCustomValidation(func(t testing.TB, rows *sql.Rows) error {
+		bancoche.WithMapQuery("jokers", map[string]any{"rarity": "Common"}),
+		// bancoche.WithQuery(bancoche.NewRawQuery("SELECT * FROM jokers WHERE rarity = ?", "Common")),
+		bancoche.WithCustomValidation(func(t testing.TB, rows *sql.Rows) error {
 			var jokerList []daos.Joker
 			if err = sqlx.StructScan(rows, &jokerList); err != nil {
 				return fmt.Errorf("could not scan joker rows: %v", err)

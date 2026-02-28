@@ -7,7 +7,7 @@ import (
 	_ "modernc.org/sqlite"
 
 	"github.com/wrapped-owls/examples/sqlite"
-	"github.com/wrapped-owls/testereiro/puppetest/pkg/runners/reqrunner"
+	"github.com/wrapped-owls/testereiro/puppetest/pkg/atores/netoche"
 )
 
 func TestSQLiteIndieGames(t *testing.T) {
@@ -25,11 +25,11 @@ func TestSQLiteIndieGames(t *testing.T) {
 	}
 
 	// Use reqrunner to verify the API
-	mr := reqrunner.NewHttpRunner(
+	mr := netoche.New(
 		engine.BaseURL(),
-		reqrunner.WithRequest(http.MethodGet, "/games", struct{}{}),
-		reqrunner.ExpectStatus(http.StatusOK),
-		reqrunner.ExpectBody([]sqlite.IndieGame{
+		netoche.WithRequest(http.MethodGet, "/games", struct{}{}),
+		netoche.ExpectStatus(http.StatusOK),
+		netoche.ExpectBody([]sqlite.IndieGame{
 			{
 				ID:          seedObject.ID,
 				Title:       seedObject.Title,

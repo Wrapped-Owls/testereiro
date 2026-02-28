@@ -13,7 +13,7 @@ import (
 	"github.com/wrapped-owls/testereiro/providers/mongotest/pkg/mongochecker"
 	"github.com/wrapped-owls/testereiro/providers/mongotest/pkg/mongoseeder"
 	"github.com/wrapped-owls/testereiro/puppetest"
-	"github.com/wrapped-owls/testereiro/puppetest/pkg/runners/reqrunner"
+	"github.com/wrapped-owls/testereiro/puppetest/pkg/atores/netoche"
 )
 
 // seedDungeonformers wraps each struct with _identity before seeding.
@@ -42,11 +42,11 @@ func TestDungeonformers_ListAll(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	mr := reqrunner.NewHttpRunner(
+	mr := netoche.New(
 		engine.BaseURL(),
-		reqrunner.WithRequest(http.MethodGet, "/dungeonformers", reqrunner.NoBody{}),
-		reqrunner.ExpectStatus(http.StatusOK),
-		reqrunner.ExpectBodyWithComparator(
+		netoche.WithRequest(http.MethodGet, "/dungeonformers", netoche.NoBody{}),
+		netoche.ExpectStatus(http.StatusOK),
+		netoche.ExpectBodyWithComparator(
 			[]bson.M{},
 			func(t testing.TB, _ []bson.M, actual []bson.M) bool {
 				if len(actual) != 10 {
@@ -73,12 +73,12 @@ func TestDungeonformers_FilterByClass(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	mr := reqrunner.NewHttpRunner(
+	mr := netoche.New(
 		engine.BaseURL(),
-		reqrunner.WithRequest(http.MethodGet, "/dungeonformers/class/{class}", reqrunner.NoBody{}),
-		reqrunner.WithPathParam("class", "Paladin Commander"),
-		reqrunner.ExpectStatus(http.StatusOK),
-		reqrunner.ExpectBodyWithComparator(
+		netoche.WithRequest(http.MethodGet, "/dungeonformers/class/{class}", netoche.NoBody{}),
+		netoche.WithPathParam("class", "Paladin Commander"),
+		netoche.ExpectStatus(http.StatusOK),
+		netoche.ExpectBodyWithComparator(
 			[]bson.M{},
 			func(t testing.TB, _ []bson.M, actual []bson.M) bool {
 				if len(actual) != 1 {

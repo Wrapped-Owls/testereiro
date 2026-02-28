@@ -1,4 +1,4 @@
-package reqrunner
+package netoche
 
 import (
 	"net/http"

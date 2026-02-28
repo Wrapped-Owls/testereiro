@@ -12,7 +12,7 @@ import (
 	"github.com/wrapped-owls/testereiro/puppetest/internal/dbastidor"
 	"github.com/wrapped-owls/testereiro/puppetest/internal/providerstore"
 	"github.com/wrapped-owls/testereiro/puppetest/internal/stgctx"
-	"github.com/wrapped-owls/testereiro/puppetest/pkg/runners"
+	"github.com/wrapped-owls/testereiro/puppetest/pkg/atores"
 )
 
 // Context is the internal context object used on the test engine to take some objects from a given state
@@ -146,7 +146,7 @@ func (e *Engine) SeedWithProvider(providers ...SeedProvider) error {
 	return errors.Join(seedErrs...)
 }
 
-func (e *Engine) Execute(t testing.TB, runner runners.Runner) error {
+func (e *Engine) Execute(t testing.TB, runner atores.Runner) error {
 	ctx := stgctx.NewRunnerContext(t.Context())
 	runEvent := &EngineRunEvent{
 		TB:     t,

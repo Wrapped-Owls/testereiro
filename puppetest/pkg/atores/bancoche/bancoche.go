@@ -1,4 +1,5 @@
-package dbrunner
+// Package bancoche (Banco + Fantoche) is a database puppet for validating state and executing queries.
+package bancoche
 
 import (
 	"database/sql"
@@ -35,8 +36,8 @@ type (
 	Option func(RunnerModifier)
 )
 
-// NewDbRunner creates a new DbRunner with the given options.
-func NewDbRunner(db *sql.DB, opts ...Option) *DbRunner {
+// New creates a new DbRunner with the given options.
+func New(db *sql.DB, opts ...Option) *DbRunner {
 	r := &DbRunner{
 		db: db,
 	}

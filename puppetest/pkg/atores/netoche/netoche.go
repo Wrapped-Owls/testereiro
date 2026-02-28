@@ -1,4 +1,5 @@
-package reqrunner
+// Package netoche (Net + Fantoche) is a network puppet for performing and validating HTTP requests.
+package netoche
 
 import (
 	"io"
@@ -33,8 +34,8 @@ type HttpRunner struct {
 // Option is a functional option for configuring the HttpRunner.
 type Option func(*HttpRunner)
 
-// NewHttpRunner creates a new HttpRunner with the given options.
-func NewHttpRunner(baseURL string, opts ...Option) *HttpRunner {
+// New creates a new HttpRunner with the given options.
+func New(baseURL string, opts ...Option) *HttpRunner {
 	r := &HttpRunner{
 		BaseURL: baseURL,
 		reqExec: &http.Client{Timeout: 30 * time.Second}, // Default client
