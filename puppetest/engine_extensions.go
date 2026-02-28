@@ -29,7 +29,7 @@ func WithTestServerFromEngine(handlerFactory func(*Engine) (http.Handler, error)
 
 func WithMigrationRunner(migrations fs.FS) EngineExtension {
 	return func(e *Engine) error {
-		if e.db == nil {
+		if e.db == nil || e.db.IsZero() {
 			return fmt.Errorf("database not initialized")
 		}
 		return dbastidor.RunMigrations(e.db.Connection(), migrations)

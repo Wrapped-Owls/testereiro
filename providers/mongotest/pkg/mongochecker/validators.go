@@ -81,7 +81,6 @@ func (v genericValidator[T, L]) Validate(
 			if !v.Comparator(t, expectedItem, actualItem) {
 				return fmt.Errorf("mongo result mismatch")
 			}
-			return nil
 		}
 	}
 
