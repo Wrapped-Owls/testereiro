@@ -1,3 +1,3 @@
 module github.com/wrapped-owls/testereiro/puppetest
 
-go 1.25
+go 1.22

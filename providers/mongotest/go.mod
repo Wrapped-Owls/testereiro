@@ -1,11 +1,9 @@
 module github.com/wrapped-owls/testereiro/providers/mongotest
 
-go 1.25
-
-replace github.com/wrapped-owls/testereiro/puppetest => ../../puppetest
+go 1.22
 
 require (
-	github.com/wrapped-owls/testereiro/puppetest v0.0.0-00010101000000-000000000000
+	github.com/wrapped-owls/testereiro/puppetest v0.0.0-20260302055353-001ec5b73e92
 	go.mongodb.org/mongo-driver/v2 v2.5.0
 )
 

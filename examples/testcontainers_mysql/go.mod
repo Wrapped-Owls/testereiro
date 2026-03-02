@@ -1,14 +1,12 @@
 module github.com/wrapped-owls/testereiro/examples/balatro_mysql
 
-go 1.25
-
-replace github.com/wrapped-owls/testereiro/puppetest => ../../puppetest
+go 1.22
 
 require (
 	github.com/go-sql-driver/mysql v1.9.3
 	github.com/stretchr/testify v1.11.1
 	github.com/testcontainers/testcontainers-go v0.40.0
-	github.com/vinovest/sqlx v1.7.1
+	github.com/vinovest/sqlx v1.7.2
 	github.com/wrapped-owls/testereiro/puppetest v0.0.0-20260201083222-2699d47186c8
 )
 
