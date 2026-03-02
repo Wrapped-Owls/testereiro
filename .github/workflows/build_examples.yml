@@ -1,0 +1,56 @@
+name: Test Examples
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+    paths:
+      - "examples/**"
+      - "puppetest/**"
+      - "providers/**"
+      - "Makefile"
+      - ".github/workflows/build_examples.yml"
+  pull_request:
+    branches:
+      - main
+      - develop
+    paths:
+      - "examples/**"
+      - "puppetest/**"
+      - "providers/**"
+      - "Makefile"
+      - ".github/workflows/build_examples.yml"
+
+jobs:
+  test:
+    strategy:
+      matrix:
+        go-version:
+          - 1.25.x
+        platform:
+          - ubuntu-latest
+          - windows-latest
+    runs-on: "${{ matrix.platform }}"
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "${{ matrix.go-version }}"
+          cache: true
+
+      - name: Test webapi example
+        run: go -C examples/webapi test -v ./...
+
+      - name: Test sqlite example
+        run: go -C examples/sqlite test -v ./...
+
+      - name: Test testcontainers mysql example
+        if: runner.os == 'Linux'
+        run: go -C examples/testcontainers_mysql test -v ./...
+
+      - name: Test testcontainers mongo example
+        if: runner.os == 'Linux'
+        run: go -C examples/mongodb_assert test -v ./...

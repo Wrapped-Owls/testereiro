@@ -1,0 +1,89 @@
+name: Test Core
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+    paths:
+      - "puppetest/**"
+      - "providers/**"
+      - "Makefile"
+      - ".github/workflows/test_core.yml"
+  pull_request:
+    branches:
+      - main
+      - develop
+    paths:
+      - "puppetest/**"
+      - "providers/**"
+      - "Makefile"
+      - ".github/workflows/test_core.yml"
+
+jobs:
+  test-puppetest:
+    strategy:
+      matrix:
+        go-version:
+          - 1.25.x
+        platform:
+          - ubuntu-latest
+          - windows-latest
+    runs-on: "${{ matrix.platform }}"
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "${{ matrix.go-version }}"
+          cache: true
+
+      - name: Test core package
+        run: go -C puppetest test -v ./...
+
+      - name: Test core package (race)
+        run: go -C puppetest test -race -v ./...
+
+  test-providers:
+    strategy:
+      matrix:
+        go-version:
+          - 1.25.x
+        platform:
+          - ubuntu-latest
+          - windows-latest
+    runs-on: "${{ matrix.platform }}"
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "${{ matrix.go-version }}"
+          cache: true
+
+      - name: Test mongotest provider
+        run: go -C providers/mongotest test -v ./...
+
+      - name: Test siqeltest provider
+        run: go -C providers/siqeltest test -v ./...
+
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.25.x"
+          cache: true
+
+      - name: Lint core package
+        uses: golangci/golangci-lint-action@v6
+        with:
+          version: latest
+          install-mode: goinstall
+          working-directory: puppetest
+          args: ./...
