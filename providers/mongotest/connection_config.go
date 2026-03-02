@@ -15,8 +15,10 @@ const (
 	defaultConnectionPingTimeout = 5 * time.Second
 )
 
+// MongoCredential aliases mongo driver credentials for connection auth.
 type MongoCredential = options.Credential
 
+// ConnectionConfig defines MongoDB connection and timeout settings for the provider.
 type ConnectionConfig struct {
 	MongoCredential
 	Context           context.Context

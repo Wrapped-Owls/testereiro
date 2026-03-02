@@ -28,8 +28,11 @@ type DbRunner struct {
 }
 
 type (
+	// RunnerModifier receives option-driven mutations for a DbRunner.
 	RunnerModifier interface {
+		// SetQueryBuilder sets the query builder used by the runner.
 		SetQueryBuilder(QueryBuilder)
+		// AddValidator appends a database validator to the runner.
 		AddValidator(validator dbValidator)
 	}
 	// Option is a functional option for configuring the DbRunner.
@@ -49,14 +52,17 @@ func New(db *sql.DB, opts ...Option) *DbRunner {
 	return r
 }
 
+// AddValidator appends a validator to be executed during Run.
 func (r *DbRunner) AddValidator(validator dbValidator) {
 	r.validators = append(r.validators, validator)
 }
 
+// SetQueryBuilder replaces the query builder used by Run.
 func (r *DbRunner) SetQueryBuilder(qb QueryBuilder) {
 	r.queryBuilder = qb
 }
 
+// Run executes the configured query and validators.
 func (r *DbRunner) Run(t testing.TB, rCtx stgctx.RunnerContext) error {
 	for _, v := range r.validators {
 		query, args, err := r.queryBuilder.Build(rCtx)

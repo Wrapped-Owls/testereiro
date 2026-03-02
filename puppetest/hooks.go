@@ -9,12 +9,14 @@ import (
 	"github.com/wrapped-owls/testereiro/puppetest/pkg/atores"
 )
 
+// EngineCreateEvent contains data available to engine creation hooks.
 type EngineCreateEvent struct {
 	TB      testing.TB
 	Factory *EngineFactory
 	Engine  *Engine
 }
 
+// EngineRunEvent contains data available to engine run hooks.
 type EngineRunEvent struct {
 	TB     testing.TB
 	Engine *Engine
@@ -22,40 +24,52 @@ type EngineRunEvent struct {
 	Ctx    Context
 }
 
+// EngineTeardownEvent contains data available to engine teardown hooks.
 type EngineTeardownEvent struct {
 	Engine *Engine
 }
 
+// EngineSeedEvent contains data available to engine seed hooks.
 type EngineSeedEvent struct {
 	Engine        *Engine
 	Seeds         []any
 	ProviderSeeds []SeedProvider
 }
 
+// FactoryCloseEvent contains data available to factory close hooks.
 type FactoryCloseEvent struct {
 	Factory *EngineFactory
 }
 
 type (
+	// BeforeEngineCreateHook runs before engine initialization.
 	BeforeEngineCreateHook func(*EngineCreateEvent) error
-	AfterEngineCreateHook  func(*EngineCreateEvent) error
+	// AfterEngineCreateHook runs after engine initialization.
+	AfterEngineCreateHook func(*EngineCreateEvent) error
 )
 
 type (
+	// BeforeEngineRunHook runs before a runner is executed.
 	BeforeEngineRunHook func(*EngineRunEvent) error
-	AfterEngineRunHook  func(*EngineRunEvent) error
+	// AfterEngineRunHook runs after a runner is executed.
+	AfterEngineRunHook func(*EngineRunEvent) error
 )
 
 type (
+	// BeforeEngineTeardownHook runs before engine teardown starts.
 	BeforeEngineTeardownHook func(*EngineTeardownEvent) error
-	AfterEngineTeardownHook  func(*EngineTeardownEvent) error
+	// AfterEngineTeardownHook runs after engine teardown completes.
+	AfterEngineTeardownHook func(*EngineTeardownEvent) error
 )
 
+// BeforeEngineSeedHook runs before SQL or provider seed operations.
 type BeforeEngineSeedHook func(*EngineSeedEvent) error
 
 type (
+	// BeforeFactoryCloseHook runs before factory close operations.
 	BeforeFactoryCloseHook func(*FactoryCloseEvent) error
-	AfterFactoryCloseHook  func(*FactoryCloseEvent) error
+	// AfterFactoryCloseHook runs after factory close operations.
+	AfterFactoryCloseHook func(*FactoryCloseEvent) error
 )
 
 type engineLifecycleHooks struct {

@@ -13,14 +13,20 @@ import (
 	"github.com/wrapped-owls/testereiro/puppetest"
 )
 
+// CheckerModifier receives option-driven mutations for MongoChecker.
 type CheckerModifier interface {
+	// SetQueryBuilder sets the query builder used by Run.
 	SetQueryBuilder(QueryBuilder)
+	// SetQueryOptions sets driver options for the selected operation.
 	SetQueryOptions(opts any)
+	// AddValidator appends a validation step executed after the query.
 	AddValidator(v validator)
 }
 
+// Option configures a MongoChecker.
 type Option func(modifier CheckerModifier)
 
+// MongoChecker runs a mongo query and validates its results.
 type MongoChecker struct {
 	db           *mongo.Database
 	query        QueryBuilder
@@ -28,6 +34,7 @@ type MongoChecker struct {
 	validators   []validator
 }
 
+// New creates a MongoChecker and applies options in order.
 func New(db *mongo.Database, opts ...Option) *MongoChecker {
 	r := &MongoChecker{db: db}
 	for _, opt := range opts {
@@ -36,18 +43,22 @@ func New(db *mongo.Database, opts ...Option) *MongoChecker {
 	return r
 }
 
+// AddValidator appends a result validator.
 func (r *MongoChecker) AddValidator(v validator) {
 	r.validators = append(r.validators, v)
 }
 
+// SetQueryBuilder sets the query builder used at execution time.
 func (r *MongoChecker) SetQueryBuilder(builder QueryBuilder) {
 	r.query = builder
 }
 
+// SetQueryOptions stores operation-specific mongo driver options.
 func (r *MongoChecker) SetQueryOptions(opts any) {
 	r.queryOptions = opts
 }
 
+// Run builds and executes the query, then runs validators over the cursor.
 func (r *MongoChecker) Run(t testing.TB, ctx puppetest.Context) error {
 	if r.db == nil {
 		return fmt.Errorf("mongo database is nil")

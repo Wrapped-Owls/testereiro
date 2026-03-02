@@ -11,14 +11,17 @@ import (
 )
 
 type (
+	// EngineExtension customizes a newly created engine.
 	EngineExtension func(engine *Engine) error
-	EngineFactory   struct {
+	// EngineFactory builds engines and owns factory-scoped resources.
+	EngineFactory struct {
 		dbFactory     *dbastidor.ConnectionFactory
 		ps            *providerstore.Store
 		binders       map[ProviderKey]factoryProviderBinder
 		extensions    []EngineExtension
 		hookLifecycle engineFactoryHookLifecycle
 	}
+	// EngineFactoryOption configures an EngineFactory during construction.
 	EngineFactoryOption func(*EngineFactory) error
 )
 
@@ -29,6 +32,7 @@ func (fac *EngineFactory) providerStore() *providerstore.Store {
 	return fac.ps
 }
 
+// WithConnectionFactory configures database creation for engines built by the factory.
 func WithConnectionFactory(
 	connPerformer dbastidor.ConnectionPerformer, executeDbCreateStmt bool,
 ) EngineFactoryOption {
@@ -44,6 +48,7 @@ func WithConnectionFactory(
 	}
 }
 
+// WithExtensions registers extensions executed for each new engine.
 func WithExtensions(extensions ...EngineExtension) EngineFactoryOption {
 	return func(fac *EngineFactory) error {
 		fac.extensions = append(fac.extensions, extensions...)
@@ -51,6 +56,7 @@ func WithExtensions(extensions ...EngineExtension) EngineFactoryOption {
 	}
 }
 
+// NewEngineFactory builds an EngineFactory and applies options in order.
 func NewEngineFactory(
 	options ...EngineFactoryOption,
 ) (*EngineFactory, error) {
@@ -65,6 +71,7 @@ func NewEngineFactory(
 	return newFactory, nil
 }
 
+// NewEngine creates and initializes an Engine bound to the testing lifecycle.
 func (fac *EngineFactory) NewEngine(t testing.TB) *Engine {
 	engine := new(Engine)
 	if createErr := fac.hookLifecycle.handleEngineCreation(t, engine); createErr != nil {
@@ -132,6 +139,7 @@ func (fac *EngineFactory) closeOperation() error {
 	return errors.Join(closeErrs...)
 }
 
+// Close releases factory-scoped resources such as DB factories and registered providers.
 func (fac *EngineFactory) Close() error {
 	if fac == nil {
 		return nil

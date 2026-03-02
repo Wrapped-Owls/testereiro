@@ -8,6 +8,7 @@ import (
 	"github.com/wrapped-owls/testereiro/puppetest/internal/stgctx"
 )
 
+// NoBody marks requests that should not include a payload body.
 type NoBody struct{}
 
 // WithRequest creates an Option that sets the request for the runner.

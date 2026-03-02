@@ -9,10 +9,12 @@ import (
 )
 
 type (
+	// FactoryProviderBinder binds a factory-scoped provider to a newly created engine.
 	FactoryProviderBinder[T any] func(ctx context.Context, engine *Engine, value *T) error
 	factoryProviderBinder        func(context.Context, *Engine) error
 )
 
+// RegisterFactoryProvider registers a provider on the factory and optionally binds it on each engine creation.
 func RegisterFactoryProvider[T any](
 	factory *EngineFactory,
 	key ProviderKey,
@@ -43,6 +45,7 @@ func RegisterFactoryProvider[T any](
 	return providerstore.SaveProvider(factory.providerStore(), key, value, teardown)
 }
 
+// FactoryProvider loads a registered factory provider by key.
 func FactoryProvider[T any](factory *EngineFactory, key ProviderKey) (*T, bool) {
 	return ResolveProvider[T](factory, key)
 }

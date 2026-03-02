@@ -1,5 +1,6 @@
 package puppetest
 
+// WithBeforeEngineCreate registers a hook executed before each engine is created.
 func WithBeforeEngineCreate(hook BeforeEngineCreateHook) EngineFactoryOption {
 	return func(fac *EngineFactory) error {
 		fac.hookLifecycle.beforeEngineCreateHooks = append(
@@ -10,6 +11,7 @@ func WithBeforeEngineCreate(hook BeforeEngineCreateHook) EngineFactoryOption {
 	}
 }
 
+// WithAfterEngineCreate registers a hook executed after each engine is created.
 func WithAfterEngineCreate(hook AfterEngineCreateHook) EngineFactoryOption {
 	return func(fac *EngineFactory) error {
 		fac.hookLifecycle.afterEngineCreateHooks = append(
@@ -20,6 +22,7 @@ func WithAfterEngineCreate(hook AfterEngineCreateHook) EngineFactoryOption {
 	}
 }
 
+// WithBeforeEngineSeed registers a hook executed before Engine.Seed and Engine.SeedWithProvider.
 func WithBeforeEngineSeed(hook BeforeEngineSeedHook) EngineFactoryOption {
 	return func(fac *EngineFactory) error {
 		fac.hookLifecycle.beforeEngineSeedHooks = append(
@@ -30,6 +33,7 @@ func WithBeforeEngineSeed(hook BeforeEngineSeedHook) EngineFactoryOption {
 	}
 }
 
+// WithBeforeEngineRun registers a hook executed before Engine.Execute.
 func WithBeforeEngineRun(hook BeforeEngineRunHook) EngineFactoryOption {
 	return func(fac *EngineFactory) error {
 		fac.hookLifecycle.beforeEngineRunHooks = append(
@@ -40,6 +44,7 @@ func WithBeforeEngineRun(hook BeforeEngineRunHook) EngineFactoryOption {
 	}
 }
 
+// WithAfterEngineRun registers a hook executed after Engine.Execute.
 func WithAfterEngineRun(hook AfterEngineRunHook) EngineFactoryOption {
 	return func(fac *EngineFactory) error {
 		fac.hookLifecycle.afterEngineRunHooks = append(
@@ -50,6 +55,7 @@ func WithAfterEngineRun(hook AfterEngineRunHook) EngineFactoryOption {
 	}
 }
 
+// WithBeforeEngineTeardown registers a hook executed before Engine.Teardown.
 func WithBeforeEngineTeardown(hook BeforeEngineTeardownHook) EngineFactoryOption {
 	return func(fac *EngineFactory) error {
 		fac.hookLifecycle.beforeEngineTeardownHooks = append(
@@ -60,6 +66,7 @@ func WithBeforeEngineTeardown(hook BeforeEngineTeardownHook) EngineFactoryOption
 	}
 }
 
+// WithAfterEngineTeardown registers a hook executed after Engine.Teardown.
 func WithAfterEngineTeardown(hook AfterEngineTeardownHook) EngineFactoryOption {
 	return func(fac *EngineFactory) error {
 		fac.hookLifecycle.afterEngineTeardownHooks = append(
@@ -70,6 +77,7 @@ func WithAfterEngineTeardown(hook AfterEngineTeardownHook) EngineFactoryOption {
 	}
 }
 
+// WithBeforeFactoryClose registers a hook executed before EngineFactory.Close.
 func WithBeforeFactoryClose(hook BeforeFactoryCloseHook) EngineFactoryOption {
 	return func(fac *EngineFactory) error {
 		fac.hookLifecycle.beforeFactoryCloseHooks = append(
@@ -80,6 +88,7 @@ func WithBeforeFactoryClose(hook BeforeFactoryCloseHook) EngineFactoryOption {
 	}
 }
 
+// WithAfterFactoryClose registers a hook executed after EngineFactory.Close.
 func WithAfterFactoryClose(hook AfterFactoryCloseHook) EngineFactoryOption {
 	return func(fac *EngineFactory) error {
 		fac.hookLifecycle.afterFactoryCloseHooks = append(

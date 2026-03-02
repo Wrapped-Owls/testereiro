@@ -28,14 +28,17 @@ func NewMapQuery(table string, filters map[string]any) *MapQueryBuilder {
 	return qb
 }
 
+// AddFilter appends a context-aware filter resolver.
 func (b *MapQueryBuilder) AddFilter(filter filterFromContext) {
 	b.lateFilters = append(b.lateFilters, filter)
 }
 
+// AddSelectFields appends explicit SELECT columns.
 func (b *MapQueryBuilder) AddSelectFields(fields ...string) {
 	b.fields = append(b.fields, fields...)
 }
 
+// Build resolves filters and returns the SQL query and arguments.
 func (b *MapQueryBuilder) Build(ctx stgctx.RunnerContext) (string, []any, error) {
 	filters := make(map[string]any)
 	for _, filterResolver := range b.lateFilters {

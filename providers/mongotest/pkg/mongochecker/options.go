@@ -10,12 +10,14 @@ import (
 	"github.com/wrapped-owls/testereiro/puppetest"
 )
 
+// WithQueryBuilder sets the query builder used by MongoChecker.
 func WithQueryBuilder(builder QueryBuilder) Option {
 	return func(modifier CheckerModifier) {
 		modifier.SetQueryBuilder(builder)
 	}
 }
 
+// ExpectDocs validates all decoded documents against expected values.
 func ExpectDocs[T any](expected []T, sanitizer ...objSanitizer[T]) Option {
 	return func(modifier CheckerModifier) {
 		v := genericValidator[T, []T]{ExpectedList: expected}
@@ -26,6 +28,7 @@ func ExpectDocs[T any](expected []T, sanitizer ...objSanitizer[T]) Option {
 	}
 }
 
+// ExpectDoc validates the first decoded document against expected value.
 func ExpectDoc[T any](expected T, sanitizer ...objSanitizer[T]) Option {
 	return func(modifier CheckerModifier) {
 		v := genericValidator[T, []T]{Expected: expected}
@@ -36,12 +39,14 @@ func ExpectDoc[T any](expected T, sanitizer ...objSanitizer[T]) Option {
 	}
 }
 
+// WithAggregateQuery configures an aggregate query with a static pipeline.
 func WithAggregateQuery(collection string, pipeline bson.A) Option {
 	return func(modifier CheckerModifier) {
 		modifier.SetQueryBuilder(NewAggregateQuery(collection, pipeline))
 	}
 }
 
+// WithAggregateQueryFromCtx configures an aggregate query whose pipeline is resolved from context.
 func WithAggregateQueryFromCtx(
 	collection string, pipelineFn func(ctx puppetest.Context) (bson.A, error),
 ) Option {
@@ -52,12 +57,14 @@ func WithAggregateQueryFromCtx(
 	}
 }
 
+// WithAggregateOptions sets options for aggregate operations.
 func WithAggregateOptions(opts ...options.Lister[options.AggregateOptions]) Option {
 	return func(modifier CheckerModifier) {
 		modifier.SetQueryOptions(opts)
 	}
 }
 
+// WithFindOneQuery configures a findOne query with a static filter.
 func WithFindOneQuery(collection string, filter bson.M) Option {
 	return func(modifier CheckerModifier) {
 		qb := NewBsonQuery(collection, filter)
@@ -66,6 +73,7 @@ func WithFindOneQuery(collection string, filter bson.M) Option {
 	}
 }
 
+// WithFindOneQueryFromCtx configures a findOne query whose filter is resolved from context.
 func WithFindOneQueryFromCtx(
 	collection string, filterFn func(ctx puppetest.Context) (bson.M, error),
 ) Option {
@@ -77,18 +85,21 @@ func WithFindOneQueryFromCtx(
 	}
 }
 
+// WithFindOptions sets options for find operations.
 func WithFindOptions(opts ...options.Lister[options.FindOptions]) Option {
 	return func(modifier CheckerModifier) {
 		modifier.SetQueryOptions(opts)
 	}
 }
 
+// WithFindOneOptions sets options for findOne operations.
 func WithFindOneOptions(opts ...options.Lister[options.FindOneOptions]) Option {
 	return func(modifier CheckerModifier) {
 		modifier.SetQueryOptions(opts)
 	}
 }
 
+// WithCountQuery configures a count query with a static filter.
 func WithCountQuery(collection string, filter bson.M) Option {
 	return func(modifier CheckerModifier) {
 		qb := NewBsonQuery(collection, filter)
@@ -97,6 +108,7 @@ func WithCountQuery(collection string, filter bson.M) Option {
 	}
 }
 
+// WithCountQueryFromCtx configures a count query whose filter is resolved from context.
 func WithCountQueryFromCtx(
 	collection string, filterFn func(ctx puppetest.Context) (bson.M, error),
 ) Option {
@@ -108,12 +120,14 @@ func WithCountQueryFromCtx(
 	}
 }
 
+// WithCountOptions sets options for count operations.
 func WithCountOptions(opts ...options.Lister[options.CountOptions]) Option {
 	return func(modifier CheckerModifier) {
 		modifier.SetQueryOptions(opts)
 	}
 }
 
+// ExpectCount validates the resulting count value.
 func ExpectCount(expected int) Option {
 	return func(modifier CheckerModifier) {
 		modifier.AddValidator(&countValidator{expected: expected})
@@ -130,6 +144,7 @@ func DecodeFirst[O any](ctx puppetest.Context, cursor *Cursor) (O, error) {
 	return mongoqueries.First[O](ctx, cursor)
 }
 
+// WithCustomValidation appends a custom validation callback.
 func WithCustomValidation(
 	validate func(t testing.TB, ctx puppetest.Context, cursor *Cursor) error,
 ) Option {

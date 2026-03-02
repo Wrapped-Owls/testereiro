@@ -12,6 +12,7 @@ import (
 	"github.com/wrapped-owls/testereiro/puppetest"
 )
 
+// NewMongoClientOptions builds normalized mongo client options from ConnectionConfig.
 func NewMongoClientOptions(cfg *ConnectionConfig) (clientOpts *options.ClientOptions, err error) {
 	if cfg == nil {
 		return nil, fmt.Errorf("connection config is nil")
@@ -39,6 +40,7 @@ func NewMongoClientOptions(cfg *ConnectionConfig) (clientOpts *options.ClientOpt
 	return clientOpts, nil
 }
 
+// CreateMongoClient connects a mongo client from prepared options.
 func CreateMongoClient(clientOpts *options.ClientOptions) (*mongo.Client, error) {
 	if clientOpts == nil {
 		return nil, fmt.Errorf("mongo client options are nil")
@@ -50,6 +52,7 @@ func CreateMongoClient(clientOpts *options.ClientOptions) (*mongo.Client, error)
 	return client, nil
 }
 
+// PingMongoClient verifies connectivity to the mongo primary within the given timeout.
 func PingMongoClient(ctx context.Context, client *mongo.Client, timeout time.Duration) error {
 	if client == nil {
 		return fmt.Errorf("mongo client is nil")
@@ -66,6 +69,7 @@ func PingMongoClient(ctx context.Context, client *mongo.Client, timeout time.Dur
 	return nil
 }
 
+// ConnectAndPingMongoClient creates a client and validates it with a ping.
 func ConnectAndPingMongoClient(
 	cfg ConnectionConfig,
 	clientOpts *options.ClientOptions,
@@ -85,6 +89,8 @@ func ConnectAndPingMongoClient(
 	return client, nil
 }
 
+// WithMongoConnection configures an EngineFactory with a managed mongo client and engine database binding.
+// The option normalizes config, connects and pings the client, and registers teardown on factory close.
 func WithMongoConnection(cfg ConnectionConfig) puppetest.EngineFactoryOption {
 	return func(factory *puppetest.EngineFactory) error {
 		clientOpts, err := NewMongoClientOptions(&cfg)
@@ -113,6 +119,7 @@ func WithMongoConnection(cfg ConnectionConfig) puppetest.EngineFactoryOption {
 	}
 }
 
+// WithMongoClient configures an EngineFactory to reuse an existing mongo client.
 func WithMongoClient(client *mongo.Client) puppetest.EngineFactoryOption {
 	return func(factory *puppetest.EngineFactory) error {
 		if client == nil {
@@ -128,6 +135,7 @@ func WithMongoClient(client *mongo.Client) puppetest.EngineFactoryOption {
 	}
 }
 
+// WithMongoDb is an alias for WithMongoConnection.
 func WithMongoDb(cfg ConnectionConfig) puppetest.EngineFactoryOption {
 	return WithMongoConnection(cfg)
 }

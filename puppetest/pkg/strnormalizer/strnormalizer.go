@@ -6,6 +6,7 @@ import (
 	"unicode/utf8"
 )
 
+// ToSnakeCase converts a string to snake_case.
 func ToSnakeCase(str string) string {
 	var builder strings.Builder
 	// Grow the builder to hold the string + some changes
@@ -34,6 +35,7 @@ func ToSnakeCase(str string) string {
 	return builder.String()
 }
 
+// ToCamelCase converts a string to lowerCamelCase.
 func ToCamelCase(str string) string {
 	var (
 		builder   strings.Builder

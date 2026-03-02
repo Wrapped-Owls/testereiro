@@ -22,6 +22,7 @@ func ExpectBody[O any](expected O, sanitizer ...respObjectSanitizer[O]) Option {
 	}
 }
 
+// ExpectBodyWithComparator adds a JSON-body validator using a custom comparator.
 func ExpectBodyWithComparator[O any](
 	expected O, comparator respObjectComparator[O],
 ) Option {

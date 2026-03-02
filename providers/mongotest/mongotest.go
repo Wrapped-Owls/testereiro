@@ -11,6 +11,7 @@ import (
 
 var databaseProviderKey = puppetest.NewTaggedProviderKey[mongo.Database]("mongo.database.resource")
 
+// NewMongoRunnerFromEngine creates a MongoChecker bound to the engine mongo database provider.
 func NewMongoRunnerFromEngine(
 	engine *puppetest.Engine,
 	opts ...mongochecker.Option,

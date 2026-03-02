@@ -8,11 +8,15 @@ import (
 )
 
 type (
-	DBFactory           = dbastidor.ConnectionFactory
-	DBConnectionConfig  = dbastidor.ConnectionConfig
+	// DBFactory is an alias for the engine database connection factory.
+	DBFactory = dbastidor.ConnectionFactory
+	// DBConnectionConfig is an alias for database connection creation inputs.
+	DBConnectionConfig = dbastidor.ConnectionConfig
+	// ConnectionPerformer is an alias for the low-level connection creator function.
 	ConnectionPerformer = dbastidor.ConnectionPerformer
 )
 
+// ConnectDB adapts a config-only connector into a ConnectionPerformer.
 func ConnectDB(
 	connector func(conf DBConnectionConfig) (*sql.DB, error),
 ) dbastidor.ConnectionPerformer {
@@ -21,6 +25,7 @@ func ConnectDB(
 	}
 }
 
+// ConnectDBFromDSN builds a ConnectionPerformer that opens a DB using a generated DSN.
 func ConnectDBFromDSN(
 	driver string, dsnGen func(conf DBConnectionConfig) string,
 ) dbastidor.ConnectionPerformer {

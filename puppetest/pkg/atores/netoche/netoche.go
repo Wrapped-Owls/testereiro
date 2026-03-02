@@ -48,6 +48,7 @@ func New(baseURL string, opts ...Option) *HttpRunner {
 	return r
 }
 
+// Run creates, modifies, sends, and validates the configured HTTP request.
 func (r *HttpRunner) Run(t testing.TB, rCtx stgctx.RunnerContext) error {
 	if r.makeRequest == nil {
 		t.Fatal("No request configured for HttpRunner")

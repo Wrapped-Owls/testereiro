@@ -12,7 +12,9 @@ import (
 )
 
 type (
-	DbSanitizer[O any]  func(expected, actual *O) error
+	// DbSanitizer mutates expected/actual values before comparison.
+	DbSanitizer[O any] func(expected, actual *O) error
+	// DbComparator compares expected and actual values and reports through testing.TB.
 	DbComparator[O any] func(t testing.TB, expected, actual O) bool
 )
 
@@ -31,6 +33,7 @@ func WithExpect[O any](expected O, sanitizer ...DbSanitizer[O]) bancoche.Option 
 	}
 }
 
+// WithExpectWithComparator adds a validator with a custom comparator.
 func WithExpectWithComparator[O any](expected O, comparator DbComparator[O]) bancoche.Option {
 	return func(modifier bancoche.RunnerModifier) {
 		modifier.AddValidator(&expectValidator[O]{
