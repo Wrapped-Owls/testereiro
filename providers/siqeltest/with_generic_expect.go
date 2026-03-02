@@ -51,14 +51,14 @@ func (v *expectValidator[O]) SelectionFields() string {
 }
 
 func (v *expectValidator[O]) Validate(t testing.TB, rows *sql.Rows) error {
-	if !rows.Next() {
-		return fmt.Errorf("no records found")
-	}
-
-	var destination O
-	if err := sqlx.StructScan(rows, &destination); err != nil {
+	var destinations []O
+	if err := sqlx.StructScan(rows, &destinations); err != nil {
 		return err
 	}
+	if len(destinations) == 0 {
+		return fmt.Errorf("no records found")
+	}
+	destination := destinations[0]
 
 	expected := v.expected
 	if v.sanitizer != nil {
