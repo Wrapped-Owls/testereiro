@@ -1,0 +1,28 @@
+baseURL = 'https://wrapped-owls.github.io/testereiro/'
+languageCode = 'en-us'
+title = 'Testereiro - Test Engine Toolkit for Go'
+theme = 'hugo-geekdoc'
+
+[params]
+description = 'Composable integration-test toolkit for Go with engine lifecycle, runners, and provider modules'
+github_repo = 'https://github.com/wrapped-owls/testereiro'
+github_branch = 'main'
+
+[params.geekdoc]
+pygmentsUseClasses = true
+pygmentsCodeFences = true
+disablePathToLower = false
+
+[markup]
+[markup.goldmark]
+[markup.goldmark.renderer]
+unsafe = true
+[markup.highlight]
+style = 'github-dark'
+codeFences = true
+lineNos = true
+lineNumbersInTable = true
+noClasses = false
+
+[taxonomies]
+tag = 'tags'
