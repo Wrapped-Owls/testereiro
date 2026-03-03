@@ -107,6 +107,10 @@ github.com/tklauser/go-sysconf v0.3.12 h1:0QaGUFOdQaIVdPgfITYzaTegZvdCjmYO52cSFA
 github.com/tklauser/go-sysconf v0.3.12/go.mod h1:Ho14jnntGE1fpdOqQEEaiKRpvIavV0hSfmBq8nJbHYI=
 github.com/tklauser/numcpus v0.6.1 h1:ng9scYS7az0Bk4OZLvrNXNSAO2Pxr1XXRAPyjhIx+Fk=
 github.com/tklauser/numcpus v0.6.1/go.mod h1:1XfjsgE2zo8GVw7POkMbHENHzVg3GzmoZ9fESEdAacY=
+github.com/wrapped-owls/testereiro/providers/mongotestage v0.5.2 h1:rmfnf7Hmce4rfShSn/rcCPTIygMQSvx/ZGLSITSfb0c=
+github.com/wrapped-owls/testereiro/providers/mongotestage v0.5.2/go.mod h1:DsIRo7I5CgRy+lwod75cT1pOtYc25zjtScv4JRtNsAk=
+github.com/wrapped-owls/testereiro/puppetest v0.5.2 h1:sOj0J6VDqrKm2DFAQwYSnonAxJ07uHy1No8e5KRZng8=
+github.com/wrapped-owls/testereiro/puppetest v0.5.2/go.mod h1:P9TfWb3p0XkEb/zWq7/j0fGTI6eoTkfFMGgLMRFCMzk=
 github.com/xdg-go/pbkdf2 v1.0.0 h1:Su7DPu48wXMwC3bs7MCNG+z4FhcyEuz5dlvchbq0B0c=
 github.com/xdg-go/pbkdf2 v1.0.0/go.mod h1:jrpuAogTd400dnrH08LKmI/xc1MbPOebTwRqcT5RDeI=
 github.com/xdg-go/scram v1.2.0 h1:bYKF2AEwG5rqd1BumT4gAnvwU/M9nBp2pTSxeZw7Wvs=

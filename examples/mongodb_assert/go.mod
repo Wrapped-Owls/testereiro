@@ -1,11 +1,11 @@
 module github.com/wrapped-owls/testereiro/examples/mongodb_assert
 
-go 1.22
+go 1.25
 
 require (
 	github.com/testcontainers/testcontainers-go v0.40.0
-	github.com/wrapped-owls/testereiro/providers/mongotest v0.0.0-20260302055353-001ec5b73e92
-	github.com/wrapped-owls/testereiro/puppetest v0.0.0-20260302055353-001ec5b73e92
+	github.com/wrapped-owls/testereiro/providers/mongotestage v0.5.2
+	github.com/wrapped-owls/testereiro/puppetest v0.5.2
 	go.mongodb.org/mongo-driver/v2 v2.5.0
 )
 

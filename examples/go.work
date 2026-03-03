@@ -1,4 +1,4 @@
-go 1.23
+go 1.26
 
 use (
 	mongodb_assert
@@ -7,4 +7,6 @@ use (
 	webapi
 
 	../puppetest
+	../providers/mongotestage
+	../providers/siqeltestage
 )

@@ -1,10 +1,10 @@
 module github.com/wrapped-owls/examples/sqlite
 
-go 1.22
+go 1.25
 
 require (
-	github.com/wrapped-owls/testereiro/puppetest v0.0.0-20260302055353-001ec5b73e92
-	modernc.org/sqlite v1.44.3
+	github.com/wrapped-owls/testereiro/puppetest v0.5.2
+	modernc.org/sqlite v1.46.1
 )
 
 require (
