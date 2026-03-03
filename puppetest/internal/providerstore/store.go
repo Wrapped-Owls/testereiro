@@ -96,8 +96,7 @@ func (s *Store) Teardown(ctx context.Context) error {
 	s.mu.Unlock()
 
 	var teardownErr error
-	for index := len(orderedKeys) - 1; index >= 0; index-- {
-		key := orderedKeys[index]
+	for _, key := range slices.Backward(orderedKeys) {
 		storeEntry, exists := entriesByKey[key]
 		if !exists {
 			continue

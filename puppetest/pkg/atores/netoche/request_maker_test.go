@@ -1,7 +1,6 @@
 package netoche
 
 import (
-	"context"
 	"net/http"
 	"testing"
 
@@ -14,7 +13,7 @@ type requestBody struct {
 
 func TestWithRequest_SetsStaticRequestMaker(t *testing.T) {
 	runner := New("http://example.test", WithRequest("PATCH", "/path", requestBody{ID: 9}))
-	ctx := stgctx.NewRunnerContext(context.Background())
+	ctx := stgctx.NewRunnerContext(t.Context())
 
 	req, err := runner.makeRequest(runner.BaseURL, t, ctx)
 	if err != nil {
@@ -61,7 +60,7 @@ func TestWithSubsequentRequest(t *testing.T) {
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			runner := New("http://api.test", WithSubsequentRequest("POST", "/sessions", tc.bodyGen))
-			ctx := stgctx.NewRunnerContext(context.Background())
+			ctx := stgctx.NewRunnerContext(t.Context())
 			tc.setupCtx(ctx)
 
 			req, err := runner.makeRequest(runner.BaseURL, t, ctx)

@@ -2,7 +2,6 @@ package netoche
 
 import (
 	"bytes"
-	"context"
 	"io"
 	"net/http"
 	"testing"
@@ -50,7 +49,7 @@ func TestHttpRunner_RunSuccess(t *testing.T) {
 	runner.reqExec = exec
 	runner.validators = append(runner.validators, validator)
 
-	ctx := stgctx.NewRunnerContext(context.Background())
+	ctx := stgctx.NewRunnerContext(t.Context())
 	if err := runner.Run(t, ctx); err != nil {
 		t.Fatalf("unexpected run error: %v", err)
 	}

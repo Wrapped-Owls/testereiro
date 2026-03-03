@@ -1,7 +1,6 @@
 package netoche
 
 import (
-	"context"
 	"net/http"
 	"testing"
 
@@ -31,7 +30,7 @@ func TestStatusValidator_MatchingStatus(t *testing.T) {
 			validator := statusValidator(tt.wantStatus)
 			validator.Validate(
 				t,
-				stgctx.NewRunnerContext(context.Background()),
+				stgctx.NewRunnerContext(t.Context()),
 				&http.Response{StatusCode: tt.respStatus},
 			)
 		})
@@ -68,7 +67,7 @@ func TestExtractToState_StoresExtractedValue(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			ctx := stgctx.NewRunnerContext(context.Background())
+			ctx := stgctx.NewRunnerContext(t.Context())
 			tt.setupCtx(ctx)
 
 			runner := New("http://api", ExtractToState(func(v raw) string { return v.Token }))

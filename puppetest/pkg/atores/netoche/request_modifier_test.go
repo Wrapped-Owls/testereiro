@@ -1,7 +1,6 @@
 package netoche
 
 import (
-	"context"
 	"fmt"
 	"net/http"
 	"strings"
@@ -15,7 +14,7 @@ type strVal string
 func (s strVal) String() string { return string(s) }
 
 func TestResolveStringValue(t *testing.T) {
-	ctx := stgctx.NewRunnerContext(context.Background())
+	ctx := stgctx.NewRunnerContext(t.Context())
 	stgctx.SaveOnCtx(ctx, 21)
 
 	tests := []struct {
@@ -58,7 +57,7 @@ func TestResolveStringValue(t *testing.T) {
 func TestWithHeaderAndPathParamModifiers(t *testing.T) {
 	type state struct{ ID int }
 
-	ctx := stgctx.NewRunnerContext(context.Background())
+	ctx := stgctx.NewRunnerContext(t.Context())
 	stgctx.SaveOnCtx(ctx, state{ID: 77})
 	req, err := http.NewRequest(http.MethodGet, "http://api/items/{id}", nil)
 	if err != nil {
@@ -90,7 +89,7 @@ func TestWithHeaderAndPathParamModifiers(t *testing.T) {
 
 func TestWithPathParamAndHeaderFromCtxErrors(t *testing.T) {
 	type state struct{ Value string }
-	ctx := stgctx.NewRunnerContext(context.Background())
+	ctx := stgctx.NewRunnerContext(t.Context())
 	req, err := http.NewRequest(http.MethodGet, "http://api/items/{id}", nil)
 	if err != nil {
 		t.Fatalf("failed to build request: %v", err)

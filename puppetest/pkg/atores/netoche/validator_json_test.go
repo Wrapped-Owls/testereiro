@@ -2,7 +2,6 @@ package netoche
 
 import (
 	"bytes"
-	"context"
 	"errors"
 	"io"
 	"net/http"
@@ -28,7 +27,7 @@ func TestJSONBodyValidator_DecodeBody(t *testing.T) {
 }
 
 func TestJSONBodyValidator_ValidateStoresBody(t *testing.T) {
-	ctx := stgctx.NewRunnerContext(context.Background())
+	ctx := stgctx.NewRunnerContext(t.Context())
 	resp := &http.Response{Body: io.NopCloser(bytes.NewBufferString(`{"id":5,"name":"Jazz"}`))}
 
 	validator := jsonBodyValidator[responseBody]{
@@ -82,7 +81,7 @@ func TestExpectBody_WithSanitizer(t *testing.T) {
 		}),
 	)
 
-	ctx := stgctx.NewRunnerContext(context.Background())
+	ctx := stgctx.NewRunnerContext(t.Context())
 	resp := &http.Response{Body: io.NopCloser(bytes.NewBufferString(`{"id":9,"name":"n"}`))}
 
 	asValidator, ok := runner.validators[0].(jsonBodyValidator[responseBody])

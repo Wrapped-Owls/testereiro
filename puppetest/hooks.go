@@ -3,6 +3,7 @@ package puppetest
 import (
 	"errors"
 	"fmt"
+	"slices"
 	"testing"
 
 	"github.com/wrapped-owls/testereiro/puppetest/pkg/atores"
@@ -95,10 +96,10 @@ func runHooks[T any, F ~func(T) error](event T, hooks []F) error {
 
 func reverseHooks[F any](hooks []F) []F {
 	reversed := make([]F, len(hooks))
-	totalHooks := len(hooks) - 1
-	for index := totalHooks; index >= 0; index-- {
-		value := hooks[index]
-		reversed[totalHooks-index] = value
+	reversedIndex := 0
+	for _, hook := range slices.Backward(hooks) {
+		reversed[reversedIndex] = hook
+		reversedIndex++
 	}
 	return reversed
 }

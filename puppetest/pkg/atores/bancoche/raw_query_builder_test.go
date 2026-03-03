@@ -1,7 +1,6 @@
 package bancoche
 
 import (
-	"context"
 	"reflect"
 	"testing"
 
@@ -9,7 +8,7 @@ import (
 )
 
 func TestRawQueryBuilder_Build(t *testing.T) {
-	runnerCtx := stgctx.NewRunnerContext(context.Background())
+	runnerCtx := stgctx.NewRunnerContext(t.Context())
 
 	tests := []struct {
 		name  string
