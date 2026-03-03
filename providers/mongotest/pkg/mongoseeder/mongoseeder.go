@@ -145,9 +145,7 @@ func (r *SeedRunner) runInsertManyMode(ctx context.Context, db *mongo.Database) 
 
 		collection := db.Collection(plan.Collection)
 		docs := make([]any, 0, len(plan.Documents))
-		for _, doc := range plan.Documents {
-			docs = append(docs, doc)
-		}
+		docs = append(docs, plan.Documents...)
 
 		_, err := collection.InsertMany(ctx, docs, options.InsertMany().SetOrdered(r.ordered))
 		if err != nil {

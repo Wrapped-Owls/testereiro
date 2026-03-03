@@ -53,7 +53,7 @@ func TestApplyWithPanicCapture(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err, panicValue := ApplyWithPanicCapture(t, func() error {
+			panicValue, err := ApplyWithPanicCapture(t, func() error {
 				if tt.panicValue != nil {
 					panic(tt.panicValue)
 				}

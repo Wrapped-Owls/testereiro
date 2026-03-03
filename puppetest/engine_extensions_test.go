@@ -30,7 +30,7 @@ func TestWithTestServer(t *testing.T) {
 				_, _ = w.Write([]byte(tc.body))
 			}))
 
-			err, panicValue := testkit.ApplyWithPanicCapture(t, func() error { return ext(engine) })
+			panicValue, err := testkit.ApplyWithPanicCapture(t, func() error { return ext(engine) })
 			if panicValue != nil {
 				panicText := fmt.Sprint(panicValue)
 				if strings.Contains(panicText, "operation not permitted") {
@@ -51,7 +51,11 @@ func TestWithTestServer(t *testing.T) {
 			if err != nil {
 				t.Fatalf("http get: %v", err)
 			}
-			defer resp.Body.Close()
+			defer func() {
+				if closeErr := resp.Body.Close(); closeErr != nil {
+					t.Errorf("close response body: %v", closeErr)
+				}
+			}()
 
 			if resp.StatusCode != tc.statusCode {
 				t.Fatalf("expected status %d, got %d", tc.statusCode, resp.StatusCode)
@@ -93,7 +97,7 @@ func TestWithTestServerFromEngine(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			engine := &Engine{}
 			ext := WithTestServerFromEngine(tc.handlerFactory)
-			err, panicValue := testkit.ApplyWithPanicCapture(t, func() error { return ext(engine) })
+			panicValue, err := testkit.ApplyWithPanicCapture(t, func() error { return ext(engine) })
 
 			if panicValue != nil {
 				panicText := fmt.Sprint(panicValue)

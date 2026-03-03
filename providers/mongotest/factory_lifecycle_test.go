@@ -157,7 +157,7 @@ func TestPingMongoClient_ValidatesInputs(t *testing.T) {
 		t.Fatal("expected nil client validation error")
 	}
 
-	err = PingMongoClient(nil, new(mongo.Client), time.Millisecond)
+	err = PingMongoClient(context.Background(), new(mongo.Client), time.Millisecond)
 	if err == nil {
 		t.Fatal("expected ping failure for zero-value client")
 	}

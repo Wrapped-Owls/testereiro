@@ -206,8 +206,6 @@ func (r *queryRows) Next(dest []driver.Value) error {
 	}
 	row := r.data[r.index]
 	r.index++
-	for i := range row {
-		dest[i] = row[i]
-	}
+	copy(dest, row)
 	return nil
 }

@@ -1,9 +1,6 @@
 package testkit
 
-import (
-	"database/sql/driver"
-	"testing"
-)
+import "testing"
 
 func TestStubSQLDriver_Open(t *testing.T) {
 	tests := []struct {
@@ -52,9 +49,7 @@ func TestStubSQLDriver_Open(t *testing.T) {
 				t.Fatalf("expected opened dsns [%q], got %v", tt.dsn, opened)
 			}
 
-			if closer, ok := conn.(driver.Conn); ok {
-				_ = closer.Close()
-			}
+			_ = conn.Close()
 		})
 	}
 }
