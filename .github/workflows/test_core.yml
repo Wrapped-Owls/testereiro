@@ -25,8 +25,6 @@ jobs:
     strategy:
       matrix:
         go-version:
-          - 1.22.x
-          - 1.23.x
           - 1.24.x
           - 1.25.x
           - 1.26.x
@@ -53,8 +51,6 @@ jobs:
     strategy:
       matrix:
         go-version:
-          - 1.22.x
-          - 1.23.x
           - 1.24.x
           - 1.25.x
           - 1.26.x
@@ -71,11 +67,11 @@ jobs:
           go-version: "${{ matrix.go-version }}"
           cache: true
 
-      - name: Test mongotest provider
-        run: go -C providers/mongotest test -v ./...
+      - name: Test mongotestage provider
+        run: go -C providers/mongotestage test -v ./...
 
-      - name: Test siqeltest provider
-        run: go -C providers/siqeltest test -v ./...
+      - name: Test siqeltestage provider
+        run: go -C providers/siqeltestage test -v ./...
 
   lint:
     runs-on: ubuntu-latest
