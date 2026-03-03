@@ -8,7 +8,7 @@ menu:
 
 ## Requirements
 
-- Go `1.25+`
+- Go `1.24+`
 - A test framework using `testing` (`go test`)
 
 ## Install Core
