@@ -4,21 +4,14 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"runtime"
 	"slices"
 	"sync"
-	"weak"
 )
 
-type cell struct {
-	value any
-}
-
 type entry struct {
-	key       Key
-	weakValue weak.Pointer[cell]
-	keepAlive func()
-	teardown  func(context.Context) error
+	key      Key
+	value    any
+	teardown func(context.Context) error
 }
 
 type Store struct {
@@ -44,14 +37,9 @@ func (s *Store) Save(key Key, value any, teardown func(context.Context) error) e
 		return fmt.Errorf("provider %q value is nil", keyLabel(key))
 	}
 
-	resourceCell := &cell{value: value}
 	storeEntry := entry{
-		key:       key,
-		weakValue: weak.Make(resourceCell),
-		keepAlive: func() {
-			runtime.KeepAlive(resourceCell)
-			runtime.KeepAlive(value)
-		},
+		key:      key,
+		value:    value,
 		teardown: teardown,
 	}
 
@@ -92,11 +80,7 @@ func (s *Store) Load(key Key) (any, bool) {
 		return nil, false
 	}
 
-	resourceCell := storeEntry.weakValue.Value()
-	if resourceCell == nil {
-		return nil, false
-	}
-	return resourceCell.value, true
+	return storeEntry.value, true
 }
 
 func (s *Store) Teardown(ctx context.Context) error {
@@ -125,9 +109,6 @@ func (s *Store) Teardown(ctx context.Context) error {
 					fmt.Errorf("provider %q: %w", keyLabel(storeEntry.key), err),
 				)
 			}
-		}
-		if storeEntry.keepAlive != nil {
-			storeEntry.keepAlive()
 		}
 	}
 	return teardownErr

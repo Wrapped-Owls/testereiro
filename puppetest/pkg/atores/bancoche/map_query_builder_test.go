@@ -1,13 +1,14 @@
 package bancoche
 
 import (
+	"context"
 	"testing"
 
 	"github.com/wrapped-owls/testereiro/puppetest/internal/stgctx"
 )
 
 func TestMapQueryBuilder_Build(t *testing.T) {
-	ctx := stgctx.NewRunnerContext(t.Context())
+	ctx := stgctx.NewRunnerContext(context.Background())
 
 	tests := []struct {
 		name          string
