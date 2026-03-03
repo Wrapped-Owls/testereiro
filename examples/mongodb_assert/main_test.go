@@ -14,7 +14,7 @@ import (
 	"github.com/testcontainers/testcontainers-go/wait"
 
 	"github.com/wrapped-owls/testereiro/examples/mongodb_assert"
-	"github.com/wrapped-owls/testereiro/providers/mongotest"
+	"github.com/wrapped-owls/testereiro/providers/mongotestage"
 	"github.com/wrapped-owls/testereiro/puppetest"
 )
 
@@ -47,10 +47,10 @@ func TestMain(m *testing.M) {
 		puppetest.WithAfterFactoryClose(func(_ *puppetest.FactoryCloseEvent) error {
 			return containerHook{container: container}.Close()
 		}),
-		mongotest.WithMongoConnection(connCfg),
+		mongotestage.WithMongoConnection(connCfg),
 		puppetest.WithExtensions(
 			puppetest.WithTestServerFromEngine(func(e *puppetest.Engine) (http.Handler, error) {
-				db, err := mongotest.DatabaseFromEngine(e)
+				db, err := mongotestage.DatabaseFromEngine(e)
 				if err != nil {
 					return nil, err
 				}
@@ -89,30 +89,33 @@ func (o containerHook) Close() error {
 
 func mongoConnectionFromContainer(
 	container testcontainers.Container,
-) (mongotest.ConnectionConfig, error) {
+) (mongotestage.ConnectionConfig, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
 	port, err := container.MappedPort(ctx, "27017")
 	if err != nil {
-		return mongotest.ConnectionConfig{}, fmt.Errorf("failed to read mapped mongo port: %w", err)
+		return mongotestage.ConnectionConfig{}, fmt.Errorf(
+			"failed to read mapped mongo port: %w",
+			err,
+		)
 	}
 	host, err := container.Host(ctx)
 	if err != nil {
-		return mongotest.ConnectionConfig{}, fmt.Errorf(
+		return mongotestage.ConnectionConfig{}, fmt.Errorf(
 			"failed to read mongo container host: %w",
 			err,
 		)
 	}
 	portNum, err := strconv.Atoi(port.Port())
 	if err != nil {
-		return mongotest.ConnectionConfig{}, fmt.Errorf(
+		return mongotestage.ConnectionConfig{}, fmt.Errorf(
 			"failed to parse mongo mapped port: %w",
 			err,
 		)
 	}
 
-	return mongotest.ConnectionConfig{
+	return mongotestage.ConnectionConfig{
 		Host: host,
 		Port: portNum,
 	}, nil

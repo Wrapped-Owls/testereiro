@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/wrapped-owls/testereiro/providers/mongotest/internal/mongoqueries"
+	"github.com/wrapped-owls/testereiro/providers/mongotestage/internal/mongoqueries"
 	"github.com/wrapped-owls/testereiro/puppetest"
 )
 

@@ -1,4 +1,4 @@
-package siqeltest
+package siqeltestage
 
 import (
 	"database/sql"

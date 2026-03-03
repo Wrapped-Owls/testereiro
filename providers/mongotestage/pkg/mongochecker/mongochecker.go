@@ -9,7 +9,7 @@ import (
 	"go.mongodb.org/mongo-driver/v2/mongo"
 	"go.mongodb.org/mongo-driver/v2/mongo/options"
 
-	"github.com/wrapped-owls/testereiro/providers/mongotest/internal/mongoqueries"
+	"github.com/wrapped-owls/testereiro/providers/mongotestage/internal/mongoqueries"
 	"github.com/wrapped-owls/testereiro/puppetest"
 )
 

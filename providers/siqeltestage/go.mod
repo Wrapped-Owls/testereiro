@@ -1,4 +1,4 @@
-module github.com/wrapped-owls/testereiro/providers/siqeltest
+module github.com/wrapped-owls/testereiro/providers/siqeltestage
 
 go 1.22
 

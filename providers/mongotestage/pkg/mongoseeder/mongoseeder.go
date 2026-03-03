@@ -7,7 +7,7 @@ import (
 	"go.mongodb.org/mongo-driver/v2/mongo"
 	"go.mongodb.org/mongo-driver/v2/mongo/options"
 
-	"github.com/wrapped-owls/testereiro/providers/mongotest"
+	"github.com/wrapped-owls/testereiro/providers/mongotestage"
 	"github.com/wrapped-owls/testereiro/puppetest"
 )
 
@@ -105,7 +105,7 @@ func (r *SeedRunner) ExecuteSeed(engine *puppetest.Engine) error {
 		return fmt.Errorf("engine is nil")
 	}
 
-	database, err := mongotest.DatabaseFromEngine(engine)
+	database, err := mongotestage.DatabaseFromEngine(engine)
 	if err != nil {
 		return err
 	}

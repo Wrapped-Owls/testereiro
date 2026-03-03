@@ -9,9 +9,9 @@ import (
 
 	"github.com/wrapped-owls/testereiro/examples/mongodb_assert/dungeonstore"
 	"github.com/wrapped-owls/testereiro/examples/mongodb_assert/fixtures"
-	"github.com/wrapped-owls/testereiro/providers/mongotest"
-	"github.com/wrapped-owls/testereiro/providers/mongotest/pkg/mongochecker"
-	"github.com/wrapped-owls/testereiro/providers/mongotest/pkg/mongoseeder"
+	"github.com/wrapped-owls/testereiro/providers/mongotestage"
+	"github.com/wrapped-owls/testereiro/providers/mongotestage/pkg/mongochecker"
+	"github.com/wrapped-owls/testereiro/providers/mongotestage/pkg/mongoseeder"
 	"github.com/wrapped-owls/testereiro/puppetest"
 	"github.com/wrapped-owls/testereiro/puppetest/pkg/atores/netoche"
 )
@@ -111,7 +111,7 @@ func TestDungeonformers_MongoDirectQuery_Identity(t *testing.T) {
 	}
 
 	// Query by _identity to verify the discriminator was stored
-	queryRunner, err := mongotest.NewMongoRunnerFromEngine(
+	queryRunner, err := mongotestage.NewMongoRunnerFromEngine(
 		engine,
 		mongochecker.WithFindOneQuery(
 			dungeonstore.CollectionName,
@@ -169,7 +169,7 @@ func TestDungeonformers_UniqueFieldsPreserved(t *testing.T) {
 	}
 
 	// Check that Wheelificer's inventions array was stored correctly
-	queryRunner, err := mongotest.NewMongoRunnerFromEngine(
+	queryRunner, err := mongotestage.NewMongoRunnerFromEngine(
 		engine,
 		mongochecker.WithFindOneQuery(
 			dungeonstore.CollectionName,

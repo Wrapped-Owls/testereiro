@@ -1,4 +1,4 @@
-module github.com/wrapped-owls/testereiro/providers/mongotest
+module github.com/wrapped-owls/testereiro/providers/mongotestage
 
 go 1.22
 

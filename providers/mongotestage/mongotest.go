@@ -1,11 +1,11 @@
-package mongotest
+package mongotestage
 
 import (
 	"fmt"
 
 	"go.mongodb.org/mongo-driver/v2/mongo"
 
-	"github.com/wrapped-owls/testereiro/providers/mongotest/pkg/mongochecker"
+	"github.com/wrapped-owls/testereiro/providers/mongotestage/pkg/mongochecker"
 	"github.com/wrapped-owls/testereiro/puppetest"
 )
 
