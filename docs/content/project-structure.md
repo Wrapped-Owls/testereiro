@@ -9,7 +9,7 @@ menu:
 ## Repository Layout
 
 - `puppetest/`: core engine, lifecycle, and built-in runners
-- `providers/`: integration modules (`mongotest`, `siqeltest`)
+- `providers/`: integration modules (`mongotestage`, `siqeltestage`)
 - `examples/`: usage examples and integration-style tests
 - `docs/`: Hugo documentation site
 

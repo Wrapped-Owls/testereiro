@@ -19,8 +19,8 @@ It gives you a deterministic lifecycle for integration tests:
 ## Packages
 
 - Core: `github.com/wrapped-owls/testereiro/puppetest`
-- Mongo provider: `github.com/wrapped-owls/testereiro/providers/mongotest`
-- SQL assertion helpers: `github.com/wrapped-owls/testereiro/providers/siqeltest`
+- Mongo provider: `github.com/wrapped-owls/testereiro/providers/mongotestage`
+- SQL assertion helpers: `github.com/wrapped-owls/testereiro/providers/siqeltestage`
 
 ## What You Can Do
 

@@ -1,23 +1,23 @@
 ---
-title: "Mongotest"
+title: "Mongotestage"
 weight: 1
 ---
 
-Module: `github.com/wrapped-owls/testereiro/providers/mongotest`
+Module: `github.com/wrapped-owls/testereiro/providers/mongotestage`
 
-`mongotest` wires a Mongo client at factory level and binds a per-engine database provider.
+`mongotestage` wires a Mongo client at factory level and binds a per-engine database provider.
 
 ## Install
 
 ```bash
-go get github.com/wrapped-owls/testereiro/providers/mongotest
+go get github.com/wrapped-owls/testereiro/providers/mongotestage
 ```
 
 ## Factory Setup
 
 ```go
 factory, err := puppetest.NewEngineFactory(
-	mongotest.WithMongoConnection(mongotest.ConnectionConfig{
+	mongotestage.WithMongoConnection(mongotestage.ConnectionConfig{
 		Host: "localhost",
 		Port: 27017,
 	}),
@@ -26,32 +26,32 @@ factory, err := puppetest.NewEngineFactory(
 
 Or reuse an existing client:
 
-- `mongotest.WithMongoClient(client)`
+- `mongotestage.WithMongoClient(client)`
 - `WithMongoClient` still registers provider teardown on `factory.Close()`, so the client is disconnected when the
   factory closes.
 
 ## Accessing Resources
 
-- `mongotest.ClientFromFactory(factory)`
-- `mongotest.DatabaseFromEngine(engine)`
+- `mongotestage.ClientFromFactory(factory)`
+- `mongotestage.DatabaseFromEngine(engine)`
 
 Engine database binding uses `engine.DBName()` internally, so each test engine maps to its own Mongo database name.
 
 ## Mongo Checker Runner
 
 Package:
-`github.com/wrapped-owls/testereiro/providers/mongotest/pkg/mongochecker`
+`github.com/wrapped-owls/testereiro/providers/mongotestage/pkg/mongochecker`
 
 Use with:
 
-- `mongotest.NewMongoRunnerFromEngine(engine, opts...)`
+- `mongotestage.NewMongoRunnerFromEngine(engine, opts...)`
 - query options like `WithFindOneQuery`, `WithAggregateQuery`, `WithCountQuery`
 - validators like `ExpectDoc`, `ExpectDocs`, `ExpectCount`, `WithCustomValidation`
 
 ## Mongo Seeder
 
 Package:
-`github.com/wrapped-owls/testereiro/providers/mongotest/pkg/mongoseeder`
+`github.com/wrapped-owls/testereiro/providers/mongotestage/pkg/mongoseeder`
 
 Use with `engine.SeedWithProvider(...)`:
 

@@ -10,5 +10,5 @@ Provider modules integrate external systems on top of `puppetest`.
 
 Current providers in this repository:
 
-- `mongotest`: MongoDB factory integration, seeding, and query assertions
-- `siqeltest`: SQL result comparison validator for `bancoche`
+- `mongotestage`: MongoDB factory integration, seeding, and query assertions
+- `siqeltestage`: SQL result comparison validator for `bancoche`

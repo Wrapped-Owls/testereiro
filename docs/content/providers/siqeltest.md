@@ -1,16 +1,16 @@
 ---
-title: "Siqeltest"
+title: "Siqeltestage"
 weight: 2
 ---
 
-Module: `github.com/wrapped-owls/testereiro/providers/siqeltest`
+Module: `github.com/wrapped-owls/testereiro/providers/siqeltestage`
 
-`siqeltest` adds typed object comparison validators for `bancoche` SQL assertions.
+`siqeltestage` adds typed object comparison validators for `bancoche` SQL assertions.
 
 ## Install
 
 ```bash
-go get github.com/wrapped-owls/testereiro/providers/siqeltest
+go get github.com/wrapped-owls/testereiro/providers/siqeltestage
 ```
 
 ## Usage
@@ -19,7 +19,7 @@ go get github.com/wrapped-owls/testereiro/providers/siqeltest
 runner := bancoche.New(
 	engine.DB(),
 	bancoche.WithMapQuery("games", map[string]any{"id": 1}),
-	siqeltest.WithExpect(expectedGame),
+	siqeltestage.WithExpect(expectedGame),
 )
 
 err := engine.Execute(t, runner)
@@ -28,7 +28,7 @@ err := engine.Execute(t, runner)
 ## Custom Comparator
 
 ```go
-siqeltest.WithExpectWithComparator(expected, func(t testing.TB, expected, actual MyType) bool {
+siqeltestage.WithExpectWithComparator(expected, func(t testing.TB, expected, actual MyType) bool {
 	return reflect.DeepEqual(expected, actual)
 })
 ```

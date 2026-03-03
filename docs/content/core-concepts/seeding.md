@@ -41,7 +41,7 @@ err := engine.SeedWithProvider(
 ExecuteSeed(engine *puppetest.Engine) error
 ```
 
-Mongo examples use `providers/mongotest/pkg/mongoseeder` to seed collections.
+Mongo examples use `providers/mongotestage/pkg/mongoseeder` to seed collections.
 
 ## Seed Hooks
 

@@ -38,7 +38,7 @@ Path: `examples/testcontainers_mysql`
 Path: `examples/mongodb_assert`
 
 - MongoDB via testcontainers
-- Uses `mongotest.WithMongoConnection`
+- Uses `mongotestage.WithMongoConnection`
 - Seeds via `mongoseeder`
 - Asserts API with `netoche` and DB state with `mongochecker`
 
