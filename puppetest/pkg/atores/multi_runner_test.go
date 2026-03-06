@@ -35,7 +35,8 @@ func TestMultiRunner_Run(t *testing.T) {
 		}),
 	}}
 
-	if err := mr.Run(t); err != nil {
+	ctx := stgctx.NewRunnerContext(t.Context())
+	if err := mr.Run(t, ctx); err != nil {
 		t.Fatalf("unexpected run error: %v", err)
 	}
 	if !calledSecond {
@@ -55,7 +56,8 @@ func TestMultiRunner_RunStopsOnError(t *testing.T) {
 		}),
 	}}
 
-	err := mr.Run(t)
+	ctx := stgctx.NewRunnerContext(t.Context())
+	err := mr.Run(t, ctx)
 	if !errors.Is(err, wantErr) {
 		t.Fatalf("expected error %v, got %v", wantErr, err)
 	}
