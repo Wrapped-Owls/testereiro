@@ -34,3 +34,15 @@ func WithExtensions(extensions ...EngineExtension) EngineFactoryOption {
 		return nil
 	}
 }
+
+// WithPlaceholderStyle sets the bind markers Engine.Seed generates; it defaults to
+// QuestionPlaceholder, so MySQL and SQLite consumers need not set it.
+func WithPlaceholderStyle(style PlaceholderStyle) EngineFactoryOption {
+	return func(fac *EngineFactory) error {
+		if style == nil {
+			return errors.New("nil placeholder style")
+		}
+		fac.placeholderStyle = style
+		return nil
+	}
+}
