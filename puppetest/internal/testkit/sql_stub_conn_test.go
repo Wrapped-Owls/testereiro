@@ -10,8 +10,10 @@ import (
 )
 
 func TestStubSQLConn_Ping(t *testing.T) {
+	t.Parallel()
+
 	pingErr := errors.New("ping failed")
-	tests := []struct {
+	testCases := []struct {
 		name    string
 		state   *SQLState
 		wantErr error
@@ -20,19 +22,23 @@ func TestStubSQLConn_Ping(t *testing.T) {
 		{name: "returns state ping error", state: &SQLState{PingErr: pingErr}, wantErr: pingErr},
 	}
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			err := (&stubSQLConn{state: tt.state}).Ping(context.Background())
-			if !errors.Is(err, tt.wantErr) {
-				t.Fatalf("expected ping error %v, got %v", tt.wantErr, err)
+	for _, testCase := range testCases {
+		t.Run(testCase.name, func(t *testing.T) {
+			t.Parallel()
+
+			err := (&stubSQLConn{state: testCase.state}).Ping(context.Background())
+			if !errors.Is(err, testCase.wantErr) {
+				t.Fatalf("expected ping error %v, got %v", testCase.wantErr, err)
 			}
 		})
 	}
 }
 
 func TestStubSQLConn_ExecContext(t *testing.T) {
+	t.Parallel()
+
 	execErr := errors.New("exec failed")
-	tests := []struct {
+	testCases := []struct {
 		name         string
 		state        *SQLState
 		query        string
@@ -63,29 +69,31 @@ func TestStubSQLConn_ExecContext(t *testing.T) {
 		},
 	}
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			result, err := (&stubSQLConn{state: tt.state}).ExecContext(
+	for _, testCase := range testCases {
+		t.Run(testCase.name, func(t *testing.T) {
+			t.Parallel()
+
+			result, err := (&stubSQLConn{state: testCase.state}).ExecContext(
 				context.Background(),
-				tt.query,
+				testCase.query,
 				[]driver.NamedValue{},
 			)
-			if !errors.Is(err, tt.wantErr) {
-				t.Fatalf("expected exec error %v, got %v", tt.wantErr, err)
+			if !errors.Is(err, testCase.wantErr) {
+				t.Fatalf("expected exec error %v, got %v", testCase.wantErr, err)
 			}
-			if tt.wantErr == nil {
+			if testCase.wantErr == nil {
 				rows, rowsErr := result.RowsAffected()
 				if rowsErr != nil {
 					t.Fatalf("rows affected error: %v", rowsErr)
 				}
-				if rows != tt.wantRows {
-					t.Fatalf("expected rows affected %d, got %d", tt.wantRows, rows)
+				if rows != testCase.wantRows {
+					t.Fatalf("expected rows affected %d, got %d", testCase.wantRows, rows)
 				}
 			}
 
-			if tt.state != nil {
-				if got := tt.state.ExecStatements(); !reflect.DeepEqual(got, tt.wantRecorded) {
-					t.Fatalf("expected recorded queries %v, got %v", tt.wantRecorded, got)
+			if testCase.state != nil {
+				if got := testCase.state.ExecStatements(); !reflect.DeepEqual(got, testCase.wantRecorded) {
+					t.Fatalf("expected recorded queries %v, got %v", testCase.wantRecorded, got)
 				}
 			}
 		})
@@ -93,7 +101,9 @@ func TestStubSQLConn_ExecContext(t *testing.T) {
 }
 
 func TestStubSQLConn_PrepareBeginAndClose(t *testing.T) {
-	tests := []struct {
+	t.Parallel()
+
+	testCases := []struct {
 		name         string
 		state        *SQLState
 		wantCloseCnt int
@@ -113,9 +123,11 @@ func TestStubSQLConn_PrepareBeginAndClose(t *testing.T) {
 		},
 	}
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			conn := &stubSQLConn{state: tt.state}
+	for _, testCase := range testCases {
+		t.Run(testCase.name, func(t *testing.T) {
+			t.Parallel()
+
+			conn := &stubSQLConn{state: testCase.state}
 
 			stmt, err := conn.Prepare("SELECT 1")
 			if err != nil {
@@ -126,17 +138,17 @@ func TestStubSQLConn_PrepareBeginAndClose(t *testing.T) {
 			}
 
 			_, beginErr := conn.Begin()
-			if beginErr == nil || !strings.Contains(beginErr.Error(), tt.wantBeginErr) {
-				t.Fatalf("expected begin error containing %q, got %v", tt.wantBeginErr, beginErr)
+			if beginErr == nil || !strings.Contains(beginErr.Error(), testCase.wantBeginErr) {
+				t.Fatalf("expected begin error containing %q, got %v", testCase.wantBeginErr, beginErr)
 			}
 
 			if closeErr := conn.Close(); closeErr != nil {
 				t.Fatalf("close error: %v", closeErr)
 			}
 
-			if tt.state != nil {
-				if got := tt.state.CloseCount(); got != tt.wantCloseCnt {
-					t.Fatalf("expected close count %d, got %d", tt.wantCloseCnt, got)
+			if testCase.state != nil {
+				if got := testCase.state.CloseCount(); got != testCase.wantCloseCnt {
+					t.Fatalf("expected close count %d, got %d", testCase.wantCloseCnt, got)
 				}
 			}
 		})

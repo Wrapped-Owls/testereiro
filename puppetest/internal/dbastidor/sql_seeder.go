@@ -15,7 +15,7 @@ func ExecuteSeedStruct(db *sql.DB, item any, placeholder PlaceholderStyle) error
 	}
 
 	val := reflect.ValueOf(item)
-	if val.Kind() == reflect.Ptr {
+	if val.Kind() == reflect.Pointer {
 		val = val.Elem()
 	}
 	if val.Kind() != reflect.Struct {

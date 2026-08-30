@@ -19,7 +19,7 @@ func (e *Engine) Seed(seeds ...any) error {
 	}
 
 	if e.db == nil || e.db.IsZero() {
-		return fmt.Errorf("database not initialized")
+		return errors.New("database not initialized")
 	}
 	for _, s := range seeds {
 		if err := dbastidor.ExecuteSeedStruct(e.db.Connection(), s, e.db.PlaceholderStyle()); err != nil {
