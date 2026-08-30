@@ -1,4 +1,3 @@
-// Package bancoche (Banco + Fantoche) is a database puppet for validating state and executing queries.
 package bancoche
 
 import (

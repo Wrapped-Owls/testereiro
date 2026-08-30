@@ -5,6 +5,9 @@ weight: 2
 
 Package: `github.com/wrapped-owls/testereiro/puppetest/pkg/atores/bancoche`
 
+The name is *banco* + *fantoche*: a database puppet, for validating state and executing
+queries.
+
 `bancoche` runs SQL queries and validates rows.
 
 ## Basic Usage

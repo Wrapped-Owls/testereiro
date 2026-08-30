@@ -5,6 +5,9 @@ weight: 1
 
 Package: `github.com/wrapped-owls/testereiro/puppetest/pkg/atores/netoche`
 
+The name is *net* + *fantoche*: a network puppet, for performing and validating HTTP
+requests.
+
 `netoche` builds HTTP requests, executes them, and validates status/body.
 
 ## Basic Usage

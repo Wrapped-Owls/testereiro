@@ -1,4 +1,3 @@
-// Package netoche (Net + Fantoche) is a network puppet for performing and validating HTTP requests.
 package netoche
 
 import (
