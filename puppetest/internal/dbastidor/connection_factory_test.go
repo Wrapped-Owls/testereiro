@@ -8,6 +8,7 @@ import (
 	"reflect"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/wrapped-owls/testereiro/puppetest/internal/testkit"
 )
@@ -70,7 +71,7 @@ func TestNewConnectionFactory(t *testing.T) {
 				performer = stubPerformer(t, &testkit.SQLState{}, &testkit.SQLState{})
 			}
 
-			factory, err := NewConnectionFactory(t.Context(), performer, testCase.buildLifecycle)
+			factory, err := NewConnectionFactory(t.Context(), performer, testCase.buildLifecycle, 0)
 			if testCase.wantErrText != "" {
 				if err == nil || !strings.Contains(err.Error(), testCase.wantErrText) {
 					t.Fatalf("expected error containing %q, got %v", testCase.wantErrText, err)
@@ -128,6 +129,7 @@ func TestConnectionFactory_NewDatabase(t *testing.T) {
 				t.Context(),
 				stubPerformer(t, rootState, subState),
 				testCase.buildLifecycle,
+				0,
 			)
 			if err != nil {
 				t.Fatalf("create factory: %v", err)
@@ -168,6 +170,7 @@ func TestConnectionFactory_NewDatabaseFailsWhenCreateFails(t *testing.T) {
 		t.Context(),
 		stubPerformer(t, rootState, &testkit.SQLState{}),
 		func(rootDB *sql.DB) DBLifecycle { return NewMySQLLifecycle(rootDB) },
+		0,
 	)
 	if err != nil {
 		t.Fatalf("create factory: %v", err)
@@ -187,6 +190,7 @@ func TestConnectionFactory_CloseIsIdempotent(t *testing.T) {
 		t.Context(),
 		stubPerformer(t, rootState, &testkit.SQLState{}),
 		nil,
+		0,
 	)
 	if err != nil {
 		t.Fatalf("create factory: %v", err)
@@ -220,6 +224,7 @@ func TestConnectionFactory_NewDatabaseDropsOnConnectFailure(t *testing.T) {
 	factory, err := NewConnectionFactory(
 		t.Context(), performer,
 		func(rootDB *sql.DB) DBLifecycle { return NewMySQLLifecycle(rootDB) },
+		0,
 	)
 	if err != nil {
 		t.Fatalf("create factory: %v", err)
@@ -249,11 +254,58 @@ func TestNewConnectionFactory_ClosesRootWhenBuilderReturnsNil(t *testing.T) {
 		t.Context(),
 		stubPerformer(t, rootState, &testkit.SQLState{}),
 		func(*sql.DB) DBLifecycle { return nil },
+		0,
 	)
 	if err == nil {
 		t.Fatal("expected an error, got nil")
 	}
 	if got := rootState.CloseCount(); got != 1 {
 		t.Fatalf("expected the root connection to be closed once, got %d", got)
+	}
+}
+
+func TestNewConnectionFactoryAppliesConnectionTimeout(t *testing.T) {
+	t.Parallel()
+
+	testCases := []struct {
+		name        string
+		connTimeout time.Duration
+		wantAtLeast time.Duration
+	}{
+		{name: "zero falls back to the default", connTimeout: 0, wantAtLeast: 0},
+		{name: "negative falls back to the default", connTimeout: -time.Minute, wantAtLeast: 0},
+		{name: "configured value reaches the performer", connTimeout: time.Hour, wantAtLeast: time.Minute},
+	}
+
+	for _, testCase := range testCases {
+		t.Run(testCase.name, func(t *testing.T) {
+			t.Parallel()
+
+			var budget time.Duration
+			performer := func(ctx context.Context, _ ConnectionConfig) (*sql.DB, error) {
+				// Reading the deadline proves the budget without waiting for it to expire.
+				if deadline, ok := ctx.Deadline(); ok {
+					budget = time.Until(deadline)
+				}
+				return testkit.OpenStubDB(t, t.Name(), &testkit.SQLState{}), nil
+			}
+
+			factory, err := NewConnectionFactory(t.Context(), performer, nil, testCase.connTimeout)
+			if err != nil {
+				t.Fatalf("create factory: %v", err)
+			}
+			t.Cleanup(func() { _ = factory.Close() })
+
+			want := testCase.wantAtLeast
+			if want == 0 {
+				want = DefaultConnectionTimeout / 2
+			}
+			if budget < want {
+				t.Fatalf("expected at least %v of budget, got %v", want, budget)
+			}
+			if testCase.connTimeout <= 0 && budget > DefaultConnectionTimeout {
+				t.Fatalf("expected the default %v, got %v", DefaultConnectionTimeout, budget)
+			}
+		})
 	}
 }

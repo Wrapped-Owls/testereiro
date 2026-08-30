@@ -7,6 +7,9 @@ import (
 	"time"
 )
 
+// DefaultConnectionTimeout bounds the whole connect path when no timeout is configured.
+const DefaultConnectionTimeout = time.Second
+
 type ConnectionFactory struct {
 	rootDB        *sql.DB
 	connPerformer ConnectionPerformer
@@ -15,14 +18,20 @@ type ConnectionFactory struct {
 }
 
 func NewConnectionFactory(
-	ctx context.Context, performer ConnectionPerformer, buildLifecycle LifecycleBuilder,
+	ctx context.Context,
+	performer ConnectionPerformer,
+	buildLifecycle LifecycleBuilder,
+	connTimeout time.Duration,
 ) (factory *ConnectionFactory, err error) {
 	if performer == nil {
 		return &ConnectionFactory{}, errors.New("nil connection performer")
 	}
+	if connTimeout <= 0 {
+		connTimeout = DefaultConnectionTimeout
+	}
 	factory = &ConnectionFactory{
 		connPerformer: performer,
-		connTimeout:   time.Second,
+		connTimeout:   connTimeout,
 		lifecycle:     NoOpLifecycle{},
 	}
 

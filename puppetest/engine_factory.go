@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"sync"
 	"testing"
+	"time"
 
 	"github.com/wrapped-owls/testereiro/puppetest/internal/dbastidor"
 	"github.com/wrapped-owls/testereiro/puppetest/internal/providerstore"
@@ -18,6 +19,7 @@ type (
 		connPerformer    dbastidor.ConnectionPerformer
 		lifecycleBuilder dbastidor.LifecycleBuilder
 		placeholderStyle dbastidor.PlaceholderStyle
+		connTimeout      time.Duration
 		psMu             sync.Mutex
 		ps               *providerstore.Store
 		binders          map[ProviderKey]factoryProviderBinder
@@ -61,7 +63,9 @@ func (fac *EngineFactory) initConnectionFactory(ctx context.Context) error {
 		return nil
 	}
 
-	dbFactory, err := dbastidor.NewConnectionFactory(ctx, fac.connPerformer, fac.lifecycleBuilder)
+	dbFactory, err := dbastidor.NewConnectionFactory(
+		ctx, fac.connPerformer, fac.lifecycleBuilder, fac.connTimeout,
+	)
 	if err != nil {
 		return fmt.Errorf("create connection factory: %w", err)
 	}

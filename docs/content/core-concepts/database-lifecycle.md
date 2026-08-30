@@ -24,6 +24,23 @@ run, over the root connection `WithConnectionFactory` opened.
 The root connection must target a database *other* than the ones being created and dropped:
 `postgres` or `template1` on Postgres, any existing schema on MySQL.
 
+### Connection timeout
+
+`WithConnectionTimeout` bounds the whole connect path, defaulting to one second:
+
+```go
+puppetest.WithConnectionTimeout(10 * time.Second)
+```
+
+The `ConnectionPerformer` call and the ping that follows it **share** this budget. That matters if
+your performer does work of its own, such as warming a connection: the time it spends comes out of
+the ping's share, and once the performer alone exceeds the budget the ping is guaranteed to fail
+against an already-expired context rather than merely racing. Raising the timeout is the only way
+to widen that window; a caller cannot buy more time from inside it.
+
+Under high `go test -p N` parallelism a one-second budget is where connection setup starts failing
+with `driver: bad connection` while the server itself is still healthy.
+
 ## Shipped Lifecycles
 
 | Builder                         | Engine     | Notes                                                                |

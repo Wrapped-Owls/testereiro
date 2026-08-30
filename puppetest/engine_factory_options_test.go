@@ -6,6 +6,7 @@ import (
 	"reflect"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/wrapped-owls/testereiro/puppetest/internal/dbastidor"
 	"github.com/wrapped-owls/testereiro/puppetest/internal/testkit"
@@ -209,6 +210,58 @@ func TestWithPlaceholderStyle(t *testing.T) {
 			got := subState.ExecStatements()
 			if len(got) != 1 || got[0] != testCase.wantStmt {
 				t.Fatalf("expected statement %q, got %v", testCase.wantStmt, got)
+			}
+		})
+	}
+}
+
+func TestWithConnectionTimeout(t *testing.T) {
+	t.Parallel()
+
+	testCases := []struct {
+		name        string
+		timeout     time.Duration
+		wantErrText string
+		wantAtLeast time.Duration
+	}{
+		{name: "reaches the performer", timeout: time.Hour, wantAtLeast: time.Minute},
+		{name: "rejects zero", timeout: 0, wantErrText: "connection timeout must be positive"},
+		{
+			name:        "rejects a negative duration",
+			timeout:     -time.Second,
+			wantErrText: "connection timeout must be positive",
+		},
+	}
+
+	for _, testCase := range testCases {
+		t.Run(testCase.name, func(t *testing.T) {
+			t.Parallel()
+
+			var budget time.Duration
+			performer := func(ctx context.Context, _ DBConnectionConfig) (*sql.DB, error) {
+				if deadline, ok := ctx.Deadline(); ok && budget == 0 {
+					budget = time.Until(deadline)
+				}
+				return testkit.OpenStubDB(t, t.Name(), &testkit.SQLState{}), nil
+			}
+
+			fac, err := NewEngineFactory(
+				WithConnectionFactory(performer),
+				WithConnectionTimeout(testCase.timeout),
+			)
+			if testCase.wantErrText != "" {
+				if err == nil || !strings.Contains(err.Error(), testCase.wantErrText) {
+					t.Fatalf("expected error containing %q, got %v", testCase.wantErrText, err)
+				}
+				return
+			}
+			if err != nil {
+				t.Fatalf("create factory: %v", err)
+			}
+			t.Cleanup(func() { _ = fac.Close() })
+
+			if budget < testCase.wantAtLeast {
+				t.Fatalf("expected at least %v of budget, got %v", testCase.wantAtLeast, budget)
 			}
 		})
 	}

@@ -2,6 +2,7 @@ package puppetest
 
 import (
 	"errors"
+	"time"
 )
 
 // WithConnectionFactory on its own creates no database and reuses the connected one; pair it with
@@ -43,6 +44,19 @@ func WithPlaceholderStyle(style PlaceholderStyle) EngineFactoryOption {
 			return errors.New("nil placeholder style")
 		}
 		fac.placeholderStyle = style
+		return nil
+	}
+}
+
+// WithConnectionTimeout bounds the whole connect path. The ConnectionPerformer call and the ping
+// that follows it SHARE this budget, so a performer that warms a connection eats into the ping's
+// share rather than getting its own. Defaults to one second.
+func WithConnectionTimeout(timeout time.Duration) EngineFactoryOption {
+	return func(fac *EngineFactory) error {
+		if timeout <= 0 {
+			return errors.New("connection timeout must be positive")
+		}
+		fac.connTimeout = timeout
 		return nil
 	}
 }
