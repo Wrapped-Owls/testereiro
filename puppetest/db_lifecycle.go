@@ -11,7 +11,8 @@ type (
 	DBLifecycle = dbastidor.DBLifecycle
 	// DBLifecycleBuilder receives a root connection, which must target a database other than the
 	// ones the lifecycle then creates and drops.
-	DBLifecycleBuilder = dbastidor.LifecycleBuilder
+	DBLifecycleBuilder   = dbastidor.LifecycleBuilder
+	SQLiteDBPathResolver = dbastidor.DBFilePathResolver
 )
 
 var ErrInvalidIdentifier = dbastidor.ErrInvalidIdentifier
@@ -38,4 +39,12 @@ func MySQLLifecycle(rootDB *sql.DB) DBLifecycle {
 //nolint:ireturn // the DBLifecycle return is what makes this a DBLifecycleBuilder value.
 func PostgresLifecycle(rootDB *sql.DB) DBLifecycle {
 	return dbastidor.NewPostgresLifecycle(rootDB)
+}
+
+// SQLiteLifecycle manages databases as files, since SQLite has no CREATE DATABASE; resolving a
+// name to an empty path marks it memory-backed, leaving nothing to create or remove.
+func SQLiteLifecycle(pathFor SQLiteDBPathResolver) DBLifecycleBuilder {
+	return func(*sql.DB) DBLifecycle {
+		return dbastidor.NewSQLiteLifecycle(pathFor)
+	}
 }

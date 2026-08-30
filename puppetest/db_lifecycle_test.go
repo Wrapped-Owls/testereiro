@@ -58,6 +58,10 @@ func TestShippedLifecycleBuilders(t *testing.T) {
 			build:   MySQLLifecycle,
 			wantDDL: "CREATE DATABASE IF NOT EXISTS `games`",
 		},
+		{
+			name:  "sqlite builder ignores the root connection",
+			build: SQLiteLifecycle(func(string) string { return "" }),
+		},
 	}
 
 	for _, testCase := range testCases {
