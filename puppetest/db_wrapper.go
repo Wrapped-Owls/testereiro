@@ -26,7 +26,6 @@ func (dw *DBWrapper) Teardown() error {
 	return closeErr
 }
 
-// Connection returns the wrapped database handle.
 func (dw *DBWrapper) Connection() *sql.DB {
 	return dw.conn
 }

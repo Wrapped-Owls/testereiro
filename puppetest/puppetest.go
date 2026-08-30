@@ -13,7 +13,7 @@ import (
 	"github.com/wrapped-owls/testereiro/puppetest/pkg/atores"
 )
 
-// Context is the internal context object used on the test engine to take some objects from a given state
+// Context carries values between the steps of one engine run.
 type (
 	Context = stgctx.RunnerContext
 	// SeedProvider defines a provider-backed seed operation.
@@ -103,7 +103,8 @@ func (e *Engine) Teardown() error {
 		}
 	}
 
-	if afterHookErr := runHooks(teardownEvent, reverseHooks(e.hooks.afterTeardownHooks)); afterHookErr != nil {
+	afterHooks := reverseHooks(e.hooks.afterTeardownHooks)
+	if afterHookErr := runHooks(teardownEvent, afterHooks); afterHookErr != nil {
 		return fmt.Errorf("after teardown hooks: %w", afterHookErr)
 	}
 	return nil

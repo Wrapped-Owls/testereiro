@@ -11,17 +11,14 @@ import (
 )
 
 type (
-	// EngineExtension customizes a newly created engine.
 	EngineExtension func(engine *Engine) error
-	// EngineFactory builds engines and owns factory-scoped resources.
-	EngineFactory struct {
+	EngineFactory   struct {
 		dbFactory     *dbastidor.ConnectionFactory
 		ps            *providerstore.Store
 		binders       map[ProviderKey]factoryProviderBinder
 		extensions    []EngineExtension
 		hookLifecycle engineFactoryHookLifecycle
 	}
-	// EngineFactoryOption configures an EngineFactory during construction.
 	EngineFactoryOption func(*EngineFactory) error
 )
 
@@ -48,7 +45,6 @@ func WithConnectionFactory(
 	}
 }
 
-// WithExtensions registers extensions executed for each new engine.
 func WithExtensions(extensions ...EngineExtension) EngineFactoryOption {
 	return func(fac *EngineFactory) error {
 		fac.extensions = append(fac.extensions, extensions...)
@@ -56,7 +52,6 @@ func WithExtensions(extensions ...EngineExtension) EngineFactoryOption {
 	}
 }
 
-// NewEngineFactory builds an EngineFactory and applies options in order.
 func NewEngineFactory(
 	options ...EngineFactoryOption,
 ) (*EngineFactory, error) {
@@ -71,7 +66,6 @@ func NewEngineFactory(
 	return newFactory, nil
 }
 
-// NewEngine creates and initializes an Engine bound to the testing lifecycle.
 func (fac *EngineFactory) NewEngine(t testing.TB) *Engine {
 	engine := new(Engine)
 	if createErr := fac.hookLifecycle.handleEngineCreation(t, engine); createErr != nil {
@@ -84,7 +78,7 @@ func (fac *EngineFactory) NewEngine(t testing.TB) *Engine {
 func (fac *EngineFactory) initEngine(t testing.TB, engine *Engine) error {
 	var dbTeardown func(ctx context.Context) error
 	engine.ctx = t.Context()
-	engine.db = NewDBWrapper(t.Name()+"_puppetest", nil) // Init name only DBWrapper
+	engine.db = NewDBWrapper(t.Name()+"_puppetest", nil)
 	if fac.dbFactory != nil {
 		subDb, err := fac.dbFactory.NewDatabase(t.Context(), t.Name())
 		if err != nil {
@@ -139,7 +133,7 @@ func (fac *EngineFactory) closeOperation() error {
 	return errors.Join(closeErrs...)
 }
 
-// Close releases factory-scoped resources such as DB factories and registered providers.
+// Close is safe to call on a nil *EngineFactory.
 func (fac *EngineFactory) Close() error {
 	if fac == nil {
 		return nil
