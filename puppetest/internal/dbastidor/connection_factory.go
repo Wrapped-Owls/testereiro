@@ -67,7 +67,8 @@ func (fac *ConnectionFactory) NewDatabase(ctx context.Context, dbName string) (
 		AllowMultiStatements: true,
 	}
 	if newDb.Connection, err = fac.connPerformer.Execute(ctx, dbConf, fac.connTimeout); err != nil {
-		return newDb, err
+		// The database exists by now, so a failure to connect would strand it on the server.
+		return newDb, errors.Join(err, fac.lifecycle.Drop(ctx, newDb.Name))
 	}
 
 	newDb.Teardown = func(subCtx context.Context) error {

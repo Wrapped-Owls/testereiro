@@ -205,6 +205,42 @@ func TestConnectionFactory_CloseIsIdempotent(t *testing.T) {
 	}
 }
 
+func TestConnectionFactory_NewDatabaseDropsOnConnectFailure(t *testing.T) {
+	t.Parallel()
+
+	connectErr := errors.New("connect failed")
+	rootState := &testkit.SQLState{}
+	performer := func(_ context.Context, conf ConnectionConfig) (*sql.DB, error) {
+		if conf.DBName == "" {
+			return testkit.OpenStubDB(t, t.Name()+"-root", rootState), nil
+		}
+		return nil, connectErr
+	}
+
+	factory, err := NewConnectionFactory(
+		t.Context(), performer,
+		func(rootDB *sql.DB) DBLifecycle { return NewMySQLLifecycle(rootDB) },
+	)
+	if err != nil {
+		t.Fatalf("create factory: %v", err)
+	}
+	t.Cleanup(func() { _ = factory.Close() })
+
+	if _, err = factory.NewDatabase(t.Context(), "games"); !errors.Is(err, connectErr) {
+		t.Fatalf("expected the connect error, got %v", err)
+	}
+
+	// Without the drop the created database would be stranded on the server.
+	dbName := "games"
+	want := []string{
+		"CREATE DATABASE IF NOT EXISTS `" + dbName + "`",
+		"DROP DATABASE IF EXISTS `" + dbName + "`",
+	}
+	if got := rootState.ExecStatements(); !reflect.DeepEqual(got, want) {
+		t.Fatalf("expected statements %v, got %v", want, got)
+	}
+}
+
 func TestNewConnectionFactory_ClosesRootWhenBuilderReturnsNil(t *testing.T) {
 	t.Parallel()
 

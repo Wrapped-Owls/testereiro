@@ -3,6 +3,7 @@ package dbastidor
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 	"time"
 )
@@ -28,7 +29,9 @@ func (connPerf ConnectionPerformer) Execute(
 	}
 
 	if err = conn.PingContext(ctx); err != nil {
-		return nil, fmt.Errorf("failed to ping the connection: %w", err)
+		return nil, errors.Join(
+			fmt.Errorf("failed to ping the connection: %w", err), conn.Close(),
+		)
 	}
 
 	return conn, nil
