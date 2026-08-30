@@ -9,7 +9,8 @@ weight: 1
 
 Key responsibilities:
 
-- configure DB creation (`WithConnectionFactory`)
+- configure DB connection (`WithConnectionFactory`)
+- configure per-test DB creation (`WithDatabaseLifecycle`)
 - apply engine extensions (`WithExtensions`)
 - register factory-level providers (`RegisterFactoryProvider`)
 - run factory close lifecycle (`Close`)
@@ -52,7 +53,8 @@ On factory close:
 
 ```go
 factory, err := puppetest.NewEngineFactory(
-	puppetest.WithConnectionFactory(myPerformer, true),
+	puppetest.WithConnectionFactory(myPerformer),
+	puppetest.WithDatabaseLifecycle(puppetest.MySQLLifecycle),
 	puppetest.WithExtensions(
 		puppetest.WithMigrationRunner(migrationsFS),
 		puppetest.WithTestServerFromEngine(func(e *puppetest.Engine) (http.Handler, error) {
@@ -62,4 +64,5 @@ factory, err := puppetest.NewEngineFactory(
 )
 ```
 
-This pattern matches the sqlite example.
+The sqlite example omits `WithDatabaseLifecycle`, because an in-memory SQLite database is already
+isolated per connection. See [Database Lifecycle](/core-concepts/database-lifecycle/).

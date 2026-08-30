@@ -1,6 +1,6 @@
 ---
 title: "Seeding"
-weight: 4
+weight: 5
 ---
 
 Testereiro supports two seeding paths.

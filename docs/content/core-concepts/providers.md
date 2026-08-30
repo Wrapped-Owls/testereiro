@@ -1,6 +1,6 @@
 ---
 title: "Providers"
-weight: 3
+weight: 4
 ---
 
 Providers are typed resources stored on engines and factories.

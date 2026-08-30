@@ -81,7 +81,8 @@ Then use `engine.BaseURL()` from your tests.
 
 ```go
 factory, err := puppetest.NewEngineFactory(
-	puppetest.WithConnectionFactory(mySQLPerformer, true),
+	puppetest.WithConnectionFactory(mySQLPerformer),
+	puppetest.WithDatabaseLifecycle(puppetest.MySQLLifecycle),
 )
 if err != nil {
 	panic(err)
@@ -89,6 +90,11 @@ if err != nil {
 ```
 
 `mySQLPerformer` must match `puppetest.ConnectionPerformer`.
+
+`WithConnectionFactory` on its own opens the database your performer points at and reuses it.
+Adding `WithDatabaseLifecycle` gives each test its own database, created before the test and
+dropped after it. See [Database Lifecycle](/core-concepts/database-lifecycle/) for the shipped
+engines and for writing your own.
 
 ## Next Steps
 
