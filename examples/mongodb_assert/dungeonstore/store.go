@@ -105,9 +105,9 @@ func (s *DungeonStore) findByFilter(
 			return nil, fmt.Errorf("document missing %s field", identityField)
 		}
 
-		decoded, err := Decode(identity, cursor.Current)
-		if err != nil {
-			return nil, err
+		decoded, decodeErr := Decode(identity, cursor.Current)
+		if decodeErr != nil {
+			return nil, decodeErr
 		}
 		results = append(results, decoded)
 	}
