@@ -22,7 +22,7 @@ func (e *Engine) Seed(seeds ...any) error {
 		return fmt.Errorf("database not initialized")
 	}
 	for _, s := range seeds {
-		if err := dbastidor.ExecuteSeedStruct(e.db.Connection(), s); err != nil {
+		if err := dbastidor.ExecuteSeedStruct(e.db.Connection(), s, e.db.PlaceholderStyle()); err != nil {
 			return fmt.Errorf("failed to seed data: %w", err)
 		}
 	}

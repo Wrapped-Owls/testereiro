@@ -89,3 +89,27 @@ func TestDBWrapper(t *testing.T) {
 		})
 	}
 }
+
+func TestDBWrapperPlaceholderStyle(t *testing.T) {
+	t.Parallel()
+
+	testCases := []struct {
+		name  string
+		style dbastidor.PlaceholderStyle
+		want  string
+	}{
+		{name: "unset falls back to question marks", want: "?"},
+		{name: "keeps the configured style", style: dbastidor.OrdinalPlaceholder, want: "$1"},
+	}
+
+	for _, testCase := range testCases {
+		t.Run(testCase.name, func(t *testing.T) {
+			t.Parallel()
+
+			wrapper := newDBWrapper("games", nil, testCase.style)
+			if got := wrapper.PlaceholderStyle()(1); got != testCase.want {
+				t.Fatalf("expected %q, got %q", testCase.want, got)
+			}
+		})
+	}
+}

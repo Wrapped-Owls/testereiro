@@ -149,3 +149,67 @@ func TestWithConnectionFactory_NoLifecycleRunsNoDDL(t *testing.T) {
 		t.Fatalf("expected no statement without a lifecycle, got %v", got)
 	}
 }
+
+func TestWithPlaceholderStyle(t *testing.T) {
+	t.Parallel()
+
+	testCases := []struct {
+		name        string
+		style       PlaceholderStyle
+		wantErrText string
+		wantStmt    string
+	}{
+		{
+			name:     "unset style seeds with question marks",
+			wantStmt: "INSERT INTO seed_rows (label) VALUES (?)",
+		},
+		{
+			name:     "ordinal style seeds with numbered markers",
+			style:    OrdinalPlaceholder,
+			wantStmt: "INSERT INTO seed_rows (label) VALUES ($1)",
+		},
+		{
+			name:        "nil style is rejected",
+			style:       nil,
+			wantErrText: "nil placeholder style",
+		},
+	}
+
+	for _, testCase := range testCases {
+		t.Run(testCase.name, func(t *testing.T) {
+			t.Parallel()
+
+			subState := &testkit.SQLState{}
+			options := []EngineFactoryOption{
+				WithConnectionFactory(stubConnectionPerformer(t, &testkit.SQLState{}, subState)),
+			}
+			if testCase.wantErrText != "" {
+				options = append(options, WithPlaceholderStyle(nil))
+			} else if testCase.style != nil {
+				options = append(options, WithPlaceholderStyle(testCase.style))
+			}
+
+			fac, err := NewEngineFactory(options...)
+			if testCase.wantErrText != "" {
+				if err == nil || !strings.Contains(err.Error(), testCase.wantErrText) {
+					t.Fatalf("expected error containing %q, got %v", testCase.wantErrText, err)
+				}
+				return
+			}
+			if err != nil {
+				t.Fatalf("create factory: %v", err)
+			}
+			t.Cleanup(func() { _ = fac.Close() })
+
+			engine := fac.NewEngine(t)
+			if seedErr := engine.Seed(seedRow{Label: "jimbo"}); seedErr != nil {
+				t.Fatalf("seed: %v", seedErr)
+			}
+
+			got := subState.ExecStatements()
+			if len(got) != 1 || got[0] != testCase.wantStmt {
+				t.Fatalf("expected statement %q, got %v", testCase.wantStmt, got)
+			}
+		})
+	}
+}

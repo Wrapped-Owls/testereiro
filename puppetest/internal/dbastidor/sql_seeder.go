@@ -9,7 +9,11 @@ import (
 	"github.com/wrapped-owls/testereiro/puppetest/pkg/strnormalizer"
 )
 
-func ExecuteSeedStruct(db *sql.DB, item any) error {
+func ExecuteSeedStruct(db *sql.DB, item any, placeholder PlaceholderStyle) error {
+	if placeholder == nil {
+		placeholder = QuestionPlaceholder
+	}
+
 	val := reflect.ValueOf(item)
 	if val.Kind() == reflect.Ptr {
 		val = val.Elem()
@@ -34,7 +38,7 @@ func ExecuteSeedStruct(db *sql.DB, item any) error {
 
 		columns = append(columns, dbTag)
 		values = append(values, val.Field(i).Interface())
-		placeholders = append(placeholders, "?")
+		placeholders = append(placeholders, placeholder(len(placeholders)+1))
 	}
 
 	if len(columns) == 0 {

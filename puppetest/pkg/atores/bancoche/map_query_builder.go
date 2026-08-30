@@ -5,6 +5,7 @@ import (
 	"maps"
 	"strings"
 
+	"github.com/wrapped-owls/testereiro/puppetest/internal/dbastidor"
 	"github.com/wrapped-owls/testereiro/puppetest/internal/stgctx"
 )
 
@@ -13,12 +14,33 @@ type MapQueryBuilder struct {
 	table       string
 	fields      []string
 	lateFilters []filterFromContext
+	placeholder PlaceholderStyle
+}
+
+// MapQueryOption configures a MapQueryBuilder during construction.
+type MapQueryOption func(*MapQueryBuilder)
+
+// PlaceholderStyle renders the bind marker for the index-th argument, counting from one.
+type PlaceholderStyle = dbastidor.PlaceholderStyle
+
+// WithPlaceholderStyle sets the bind markers the WHERE clause generates; it defaults to "?",
+// so MySQL and SQLite consumers need not set it.
+func WithPlaceholderStyle(style PlaceholderStyle) MapQueryOption {
+	return func(b *MapQueryBuilder) {
+		b.placeholder = style
+	}
 }
 
 // NewMapQuery creates a new MapQueryBuilder with the given table and initial filters.
-func NewMapQuery(table string, filters map[string]any) *MapQueryBuilder {
+func NewMapQuery(
+	table string, filters map[string]any, opts ...MapQueryOption,
+) *MapQueryBuilder {
 	qb := &MapQueryBuilder{
-		table: table,
+		table:       table,
+		placeholder: dbastidor.QuestionPlaceholder,
+	}
+	for _, opt := range opts {
+		opt(qb)
 	}
 	if len(filters) > 0 {
 		qb.AddFilter(func(_ stgctx.RunnerContext) (map[string]any, error) {
@@ -53,8 +75,12 @@ func (b *MapQueryBuilder) Build(ctx stgctx.RunnerContext) (string, []any, error)
 		where = make([]string, 0, len(filters))
 		args  = make([]any, 0, len(filters))
 	)
+	placeholder := b.placeholder
+	if placeholder == nil {
+		placeholder = dbastidor.QuestionPlaceholder
+	}
 	for filterKey, filterValue := range filters {
-		where = append(where, fmt.Sprintf("%s = ?", filterKey))
+		where = append(where, fmt.Sprintf("%s = %s", filterKey, placeholder(len(args)+1)))
 		args = append(args, filterValue)
 	}
 

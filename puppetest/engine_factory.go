@@ -16,6 +16,7 @@ type (
 		dbFactory        *dbastidor.ConnectionFactory
 		connPerformer    dbastidor.ConnectionPerformer
 		lifecycleBuilder dbastidor.LifecycleBuilder
+		placeholderStyle dbastidor.PlaceholderStyle
 		ps               *providerstore.Store
 		binders          map[ProviderKey]factoryProviderBinder
 		extensions       []EngineExtension
@@ -77,13 +78,13 @@ func (fac *EngineFactory) NewEngine(t testing.TB) *Engine {
 func (fac *EngineFactory) initEngine(t testing.TB, engine *Engine) error {
 	var dbTeardown func(ctx context.Context) error
 	engine.ctx = t.Context()
-	engine.db = NewDBWrapper(t.Name()+"_puppetest", nil)
+	engine.db = newDBWrapper(t.Name()+"_puppetest", nil, fac.placeholderStyle)
 	if fac.dbFactory != nil {
 		subDb, err := fac.dbFactory.NewDatabase(t.Context(), t.Name())
 		if err != nil {
 			return fmt.Errorf("create database for test %q: %w", t.Name(), err)
 		}
-		engine.db = NewDBWrapper(subDb.Name, subDb.Connection)
+		engine.db = newDBWrapper(subDb.Name, subDb.Connection, fac.placeholderStyle)
 		dbTeardown = subDb.Teardown
 	}
 
