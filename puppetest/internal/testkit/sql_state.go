@@ -1,20 +1,40 @@
 package testkit
 
-import "sync"
+import (
+	"database/sql/driver"
+	"slices"
+	"sync"
+)
+
+type RecordedQuery struct {
+	Statement string
+	Args      []driver.Value
+}
 
 type SQLState struct {
-	PingErr error
-	ExecErr error
+	PingErr  error
+	ExecErr  error
+	QueryErr error
+	// One canned result reused by every QueryContext call, not sequenced per call.
+	QueryCols []string
+	QueryRows [][]driver.Value
 
 	mu         sync.Mutex
-	execStmts  []string
+	execCalls  []RecordedQuery
+	queryCalls []RecordedQuery
 	closeCount int
 }
 
-func (s *SQLState) recordExec(query string) {
+func (s *SQLState) recordExec(query string, args []driver.Value) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	s.execStmts = append(s.execStmts, query)
+	s.execCalls = append(s.execCalls, RecordedQuery{Statement: query, Args: slices.Clone(args)})
+}
+
+func (s *SQLState) recordQuery(query string, args []driver.Value) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.queryCalls = append(s.queryCalls, RecordedQuery{Statement: query, Args: slices.Clone(args)})
 }
 
 func (s *SQLState) recordClose() {
@@ -26,9 +46,23 @@ func (s *SQLState) recordClose() {
 func (s *SQLState) ExecStatements() []string {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	copied := make([]string, len(s.execStmts))
-	copy(copied, s.execStmts)
-	return copied
+	statements := make([]string, len(s.execCalls))
+	for index, call := range s.execCalls {
+		statements[index] = call.Statement
+	}
+	return statements
+}
+
+func (s *SQLState) ExecCalls() []RecordedQuery {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return slices.Clone(s.execCalls)
+}
+
+func (s *SQLState) QueryCalls() []RecordedQuery {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return slices.Clone(s.queryCalls)
 }
 
 func (s *SQLState) CloseCount() int {

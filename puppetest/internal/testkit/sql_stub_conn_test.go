@@ -142,3 +142,74 @@ func TestStubSQLConn_PrepareBeginAndClose(t *testing.T) {
 		})
 	}
 }
+
+func TestStubSQLConn_QueryContext(t *testing.T) {
+	t.Parallel()
+
+	queryErr := errors.New("query failed")
+	testCases := []struct {
+		name         string
+		state        *SQLState
+		query        string
+		args         []driver.NamedValue
+		wantErr      error
+		wantCols     []string
+		wantRecorded []RecordedQuery
+	}{
+		{
+			name: "records query with bound args and returns canned rows",
+			state: &SQLState{
+				QueryCols: []string{"exists"},
+				QueryRows: [][]driver.Value{{true}},
+			},
+			query:    "SELECT EXISTS (SELECT 1 FROM pg_database WHERE datname = $1)",
+			args:     []driver.NamedValue{{Ordinal: 1, Value: "games"}},
+			wantCols: []string{"exists"},
+			wantRecorded: []RecordedQuery{
+				{
+					Statement: "SELECT EXISTS (SELECT 1 FROM pg_database WHERE datname = $1)",
+					Args:      []driver.Value{"games"},
+				},
+			},
+		},
+		{
+			name:    "records query and returns query error",
+			state:   &SQLState{QueryErr: queryErr},
+			query:   "BROKEN",
+			wantErr: queryErr,
+			wantRecorded: []RecordedQuery{
+				{Statement: "BROKEN", Args: []driver.Value{}},
+			},
+		},
+		{
+			name:  "nil state returns empty rows",
+			state: nil,
+			query: "SELECT 1",
+		},
+	}
+
+	for _, testCase := range testCases {
+		t.Run(testCase.name, func(t *testing.T) {
+			t.Parallel()
+
+			rows, err := (&stubSQLConn{state: testCase.state}).QueryContext(
+				context.Background(),
+				testCase.query,
+				testCase.args,
+			)
+			if !errors.Is(err, testCase.wantErr) {
+				t.Fatalf("expected query error %v, got %v", testCase.wantErr, err)
+			}
+			if testCase.wantErr == nil && !reflect.DeepEqual(rows.Columns(), testCase.wantCols) {
+				t.Fatalf("expected columns %v, got %v", testCase.wantCols, rows.Columns())
+			}
+
+			if testCase.state == nil {
+				return
+			}
+			if got := testCase.state.QueryCalls(); !reflect.DeepEqual(got, testCase.wantRecorded) {
+				t.Fatalf("expected recorded queries %v, got %v", testCase.wantRecorded, got)
+			}
+		})
+	}
+}
