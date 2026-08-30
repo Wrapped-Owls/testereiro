@@ -2,6 +2,7 @@ package puppetest
 
 import (
 	"context"
+	"database/sql/driver"
 	"errors"
 	"testing"
 
@@ -84,6 +85,56 @@ func TestShippedLifecycleBuilders(t *testing.T) {
 			}
 			if len(statements) != 1 || statements[0] != testCase.wantDDL {
 				t.Fatalf("expected statement %q, got %v", testCase.wantDDL, statements)
+			}
+		})
+	}
+}
+
+func TestPostgresLifecycleBuilder(t *testing.T) {
+	t.Parallel()
+
+	testCases := []struct {
+		name     string
+		exists   bool
+		wantDDL  []string
+		wantSkip bool
+	}{
+		{
+			name:    "creates the database when pg_database has no row for it",
+			exists:  false,
+			wantDDL: []string{`CREATE DATABASE "games"`},
+		},
+		{
+			name:     "skips creation when the database already exists",
+			exists:   true,
+			wantSkip: true,
+		},
+	}
+
+	for _, testCase := range testCases {
+		t.Run(testCase.name, func(t *testing.T) {
+			t.Parallel()
+
+			state := &testkit.SQLState{
+				QueryCols: []string{"exists"},
+				QueryRows: [][]driver.Value{{testCase.exists}},
+			}
+			rootDB := testkit.OpenStubDB(t, t.Name(), state)
+			t.Cleanup(func() { _ = rootDB.Close() })
+
+			if err := PostgresLifecycle(rootDB).Create(t.Context(), "games"); err != nil {
+				t.Fatalf("create: %v", err)
+			}
+
+			statements := state.ExecStatements()
+			if testCase.wantSkip {
+				if len(statements) != 0 {
+					t.Fatalf("expected no statement, got %v", statements)
+				}
+				return
+			}
+			if len(statements) != 1 || statements[0] != testCase.wantDDL[0] {
+				t.Fatalf("expected statement %v, got %v", testCase.wantDDL, statements)
 			}
 		})
 	}
