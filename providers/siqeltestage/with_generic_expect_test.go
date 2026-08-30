@@ -118,13 +118,13 @@ func contains(s, substr string) bool {
 
 var registerDriverOnce sync.Once
 
-func openRows(t *testing.T, columns []string, data [][]driver.Value) *sql.Rows {
+func openRows(t *testing.T, columns []string, values [][]driver.Value) *sql.Rows {
 	t.Helper()
 	registerDriverOnce.Do(func() {
 		sql.Register("siqeltest-driver", &queryDriver{})
 	})
 
-	dsn := addFixture(columns, data)
+	dsn := addFixture(columns, values)
 	db, err := sql.Open("siqeltest-driver", dsn)
 	if err != nil {
 		t.Fatalf("failed to open test db: %v", err)
@@ -149,11 +149,11 @@ var (
 	fixtures   = map[string]fixture{}
 )
 
-func addFixture(columns []string, data [][]driver.Value) string {
+func addFixture(columns []string, values [][]driver.Value) string {
 	fixturesMu.Lock()
 	defer fixturesMu.Unlock()
 	id := fmt.Sprintf("fixture-%d", len(fixtures)+1)
-	fixtures[id] = fixture{columns: columns, data: data}
+	fixtures[id] = fixture{columns: columns, data: values}
 	return id
 }
 
