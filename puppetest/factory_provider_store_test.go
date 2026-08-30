@@ -3,7 +3,10 @@ package puppetest
 import (
 	"context"
 	"errors"
+	"sync"
 	"testing"
+
+	"github.com/wrapped-owls/testereiro/puppetest/internal/providerstore"
 )
 
 func TestEngineFactory_ProviderStorage(t *testing.T) {
@@ -206,5 +209,41 @@ func TestEngineFactory_BindFactoryProviders_ReturnsError(t *testing.T) {
 	}
 	if !errors.Is(err, expectedErr) {
 		t.Fatalf("expected bind error to include original error, got: %v", err)
+	}
+}
+
+func TestEngineFactory_ProviderStoreLazyInitIsRaceFree(t *testing.T) {
+	t.Parallel()
+
+	fac, err := NewEngineFactory()
+	if err != nil {
+		t.Fatalf("create factory: %v", err)
+	}
+	t.Cleanup(func() { _ = fac.Close() })
+
+	const racers = 8
+	var (
+		start  = make(chan struct{})
+		ready  sync.WaitGroup
+		stores = make([]*providerstore.Store, racers)
+	)
+	ready.Add(racers)
+	for index := range racers {
+		go func() {
+			defer ready.Done()
+			<-start // release every goroutine at once, so they genuinely contend
+			stores[index] = fac.providerStore()
+		}()
+	}
+	close(start)
+	ready.Wait()
+
+	for index, store := range stores {
+		if store == nil {
+			t.Fatalf("goroutine %d got a nil store", index)
+		}
+		if store != stores[0] {
+			t.Fatalf("goroutine %d got a different store than goroutine 0", index)
+		}
 	}
 }

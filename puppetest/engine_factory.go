@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"sync"
 	"testing"
 
 	"github.com/wrapped-owls/testereiro/puppetest/internal/dbastidor"
@@ -17,6 +18,7 @@ type (
 		connPerformer    dbastidor.ConnectionPerformer
 		lifecycleBuilder dbastidor.LifecycleBuilder
 		placeholderStyle dbastidor.PlaceholderStyle
+		psMu             sync.Mutex
 		ps               *providerstore.Store
 		binders          map[ProviderKey]factoryProviderBinder
 		extensions       []EngineExtension
@@ -26,6 +28,8 @@ type (
 )
 
 func (fac *EngineFactory) providerStore() *providerstore.Store {
+	fac.psMu.Lock()
+	defer fac.psMu.Unlock()
 	if fac.ps == nil {
 		fac.ps = providerstore.New()
 	}
