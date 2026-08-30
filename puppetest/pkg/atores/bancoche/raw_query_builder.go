@@ -16,7 +16,6 @@ func NewRawQuery(query string, args ...any) *RawQueryBuilder {
 	}
 }
 
-// Build returns the raw SQL query and arguments unchanged.
 func (b *RawQueryBuilder) Build(_ stgctx.RunnerContext) (string, []any, error) {
 	return b.query, b.args, nil
 }

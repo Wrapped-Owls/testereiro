@@ -9,9 +9,9 @@ import (
 	"github.com/wrapped-owls/testereiro/puppetest/internal/stgctx"
 )
 
-type strVal string
+type stringValue string
 
-func (s strVal) String() string { return string(s) }
+func (s stringValue) String() string { return string(s) }
 
 func TestResolveStringValue(t *testing.T) {
 	ctx := stgctx.NewRunnerContext(t.Context())
@@ -25,7 +25,7 @@ func TestResolveStringValue(t *testing.T) {
 	}{
 		{name: "string", value: "v", want: "v"},
 		{name: "func string", value: func() string { return "f" }, want: "f"},
-		{name: "stringer", value: strVal("s"), want: "s"},
+		{name: "stringer", value: stringValue("s"), want: "s"},
 		{name: "ctx func", value: func(stgctx.RunnerContext) string { return "ctx" }, want: "ctx"},
 		{
 			name:  "ctx func with error",

@@ -11,8 +11,8 @@ func ToSnakeCase(str string) string {
 	var builder strings.Builder
 	// Grow the builder to hold the string + some changes
 	{
-		strLen := len(str)
-		builder.Grow(strLen + strLen/4)
+		length := len(str)
+		builder.Grow(length + length/4)
 	}
 
 	var pendingUnderscore bool
