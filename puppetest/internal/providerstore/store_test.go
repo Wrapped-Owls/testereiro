@@ -270,22 +270,7 @@ func TestStore_Teardown(t *testing.T) {
 			store, order := tt.setup(t)
 			err := store.Teardown(context.Background())
 
-			if len(tt.wantErrs) == 0 {
-				if err != nil {
-					t.Fatalf("expected nil teardown error, got %v", err)
-				}
-			} else {
-				for _, wantErr := range tt.wantErrs {
-					if !errors.Is(err, wantErr) {
-						t.Fatalf("expected joined error to include %v, got %v", wantErr, err)
-					}
-				}
-				for _, wantText := range tt.wantErrSubstrings {
-					if !strings.Contains(err.Error(), wantText) {
-						t.Fatalf("expected error to contain %q, got %v", wantText, err)
-					}
-				}
-			}
+			assertTeardownError(t, err, tt.wantErrs, tt.wantErrSubstrings)
 
 			if !slices.Equal(*order, tt.wantOrder) {
 				t.Fatalf("expected teardown order %v, got %v", tt.wantOrder, *order)
@@ -332,20 +317,9 @@ func TestSaveProvider(t *testing.T) {
 			teardownCalled := false
 			teardownFn := tt.teardown
 			if teardownFn == nil {
-				teardownFn = func(_ context.Context, v *int) error {
-					if tt.wantTeardown {
-						teardownCalled = true
-						if tt.wantNilValue {
-							if v != nil {
-								t.Fatalf("expected nil teardown value, got %#v", v)
-							}
-							return nil
-						}
-						if v == nil || *v != 11 {
-							t.Fatalf("unexpected teardown value: %#v", v)
-						}
-					}
-					return nil
+				teardownFn = func(context.Context, *int) error { return nil }
+				if tt.wantTeardown {
+					teardownFn = recordingTeardown(t, tt.value, &teardownCalled)
 				}
 			}
 
@@ -375,5 +349,44 @@ func TestSaveProvider(t *testing.T) {
 				t.Fatalf("expected teardown callback to be called")
 			}
 		})
+	}
+}
+
+func assertTeardownError(t *testing.T, err error, wantErrs []error, wantSubstrings []string) {
+	t.Helper()
+
+	if len(wantErrs) == 0 {
+		if err != nil {
+			t.Fatalf("expected nil teardown error, got %v", err)
+		}
+		return
+	}
+	for _, wantErr := range wantErrs {
+		if !errors.Is(err, wantErr) {
+			t.Fatalf("expected joined error to include %v, got %v", wantErr, err)
+		}
+	}
+	for _, wantText := range wantSubstrings {
+		if !strings.Contains(err.Error(), wantText) {
+			t.Fatalf("expected error to contain %q, got %v", wantText, err)
+		}
+	}
+}
+
+// wantValue nil means the teardown is expected to receive a nil value.
+func recordingTeardown(
+	t *testing.T, wantValue *int, called *bool,
+) func(context.Context, *int) error {
+	t.Helper()
+
+	return func(_ context.Context, value *int) error {
+		*called = true
+		switch {
+		case wantValue == nil && value != nil:
+			t.Fatalf("expected nil teardown value, got %#v", value)
+		case wantValue != nil && (value == nil || *value != *wantValue):
+			t.Fatalf("expected teardown value %d, got %#v", *wantValue, value)
+		}
+		return nil
 	}
 }
