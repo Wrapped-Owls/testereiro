@@ -13,11 +13,13 @@ import (
 type (
 	EngineExtension func(engine *Engine) error
 	EngineFactory   struct {
-		dbFactory     *dbastidor.ConnectionFactory
-		ps            *providerstore.Store
-		binders       map[ProviderKey]factoryProviderBinder
-		extensions    []EngineExtension
-		hookLifecycle engineFactoryHookLifecycle
+		dbFactory        *dbastidor.ConnectionFactory
+		connPerformer    dbastidor.ConnectionPerformer
+		lifecycleBuilder dbastidor.LifecycleBuilder
+		ps               *providerstore.Store
+		binders          map[ProviderKey]factoryProviderBinder
+		extensions       []EngineExtension
+		hookLifecycle    engineFactoryHookLifecycle
 	}
 	EngineFactoryOption func(*EngineFactory) error
 )
@@ -29,29 +31,6 @@ func (fac *EngineFactory) providerStore() *providerstore.Store {
 	return fac.ps
 }
 
-// WithConnectionFactory configures database creation for engines built by the factory.
-func WithConnectionFactory(
-	connPerformer dbastidor.ConnectionPerformer, executeDbCreateStmt bool,
-) EngineFactoryOption {
-	return func(fac *EngineFactory) error {
-		dbFactory, err := dbastidor.NewConnectionFactory(
-			context.Background(), executeDbCreateStmt, connPerformer,
-		)
-		if err != nil {
-			return fmt.Errorf("create connection factory: %w", err)
-		}
-		fac.dbFactory = dbFactory
-		return nil
-	}
-}
-
-func WithExtensions(extensions ...EngineExtension) EngineFactoryOption {
-	return func(fac *EngineFactory) error {
-		fac.extensions = append(fac.extensions, extensions...)
-		return nil
-	}
-}
-
 func NewEngineFactory(
 	options ...EngineFactoryOption,
 ) (*EngineFactory, error) {
@@ -61,9 +40,29 @@ func NewEngineFactory(
 			return nil, fmt.Errorf("apply engine factory option at index %d: %w", index, err)
 		}
 	}
+	if err := newFactory.initConnectionFactory(context.Background()); err != nil {
+		return nil, err
+	}
 	newFactory.hookLifecycle.bind(newFactory)
 
 	return newFactory, nil
+}
+
+func (fac *EngineFactory) initConnectionFactory(ctx context.Context) error {
+	if fac.connPerformer == nil {
+		if fac.lifecycleBuilder != nil {
+			return errors.New("database lifecycle set without a connection factory")
+		}
+		return nil
+	}
+
+	dbFactory, err := dbastidor.NewConnectionFactory(ctx, fac.connPerformer, fac.lifecycleBuilder)
+	if err != nil {
+		return fmt.Errorf("create connection factory: %w", err)
+	}
+	fac.dbFactory = dbFactory
+
+	return nil
 }
 
 func (fac *EngineFactory) NewEngine(t testing.TB) *Engine {

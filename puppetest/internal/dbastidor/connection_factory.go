@@ -15,7 +15,7 @@ type ConnectionFactory struct {
 }
 
 func NewConnectionFactory(
-	ctx context.Context, executeCreateDbStmt bool, performer ConnectionPerformer,
+	ctx context.Context, performer ConnectionPerformer, buildLifecycle LifecycleBuilder,
 ) (factory *ConnectionFactory, err error) {
 	if performer == nil {
 		return &ConnectionFactory{}, errors.New("nil connection performer")
@@ -33,8 +33,12 @@ func NewConnectionFactory(
 		return factory, err
 	}
 
-	if executeCreateDbStmt {
-		factory.lifecycle = NewSQLLifecycle(factory.rootDB)
+	if buildLifecycle != nil {
+		if factory.lifecycle = buildLifecycle(factory.rootDB); factory.lifecycle == nil {
+			return factory, errors.Join(
+				errors.New("database lifecycle builder returned nil"), factory.Close(),
+			)
+		}
 	}
 
 	return factory, nil

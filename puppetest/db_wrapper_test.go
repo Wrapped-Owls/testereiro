@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"testing"
 
+	"github.com/wrapped-owls/testereiro/puppetest/internal/dbastidor"
 	"github.com/wrapped-owls/testereiro/puppetest/internal/testkit"
 )
 
@@ -49,8 +50,9 @@ func TestDBWrapper(t *testing.T) {
 
 			wrapper := NewDBWrapper(tc.dbName, conn)
 
-			if wrapper.name != tc.wantNormalized {
-				t.Fatalf("expected normalized name %q, got %q", tc.wantNormalized, wrapper.name)
+			wantNormalized := dbastidor.NormalizeDBName(tc.dbName)
+			if wrapper.name != wantNormalized {
+				t.Fatalf("expected normalized name %q, got %q", wantNormalized, wrapper.name)
 			}
 
 			gotConn := wrapper.Connection()
