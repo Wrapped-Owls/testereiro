@@ -18,6 +18,26 @@ type seedEmpty struct {
 	NoTag string
 }
 
+type seedInbox struct {
+	Card string `db:"card"`
+}
+
+type seedCategory struct {
+	Card string `db:"card"`
+}
+
+type seedKey struct {
+	Card string `db:"card"`
+}
+
+type seedDeck struct {
+	Card string `db:"card"`
+}
+
+func (seedDeck) TableName() string {
+	return "joker_deck"
+}
+
 func TestExecuteSeedStruct(t *testing.T) {
 	t.Parallel()
 
@@ -50,6 +70,36 @@ func TestExecuteSeedStruct(t *testing.T) {
 			item:        &seedJoker{Name: "Jimbo", Rarity: "Common"},
 			placeholder: OrdinalPlaceholder,
 			wantStmt:    "INSERT INTO seed_jokers (name, rarity) VALUES ($1, $2)",
+		},
+		{
+			name:        "a name ending in x is already plural",
+			item:        seedInbox{Card: "Joker"},
+			placeholder: OrdinalPlaceholder,
+			wantStmt:    "INSERT INTO seed_inbox (card) VALUES ($1)",
+		},
+		{
+			name:        "a consonant before the final y takes ies",
+			item:        seedCategory{Card: "Joker"},
+			placeholder: OrdinalPlaceholder,
+			wantStmt:    "INSERT INTO seed_categories (card) VALUES ($1)",
+		},
+		{
+			name:        "a vowel before the final y takes s",
+			item:        seedKey{Card: "Joker"},
+			placeholder: OrdinalPlaceholder,
+			wantStmt:    "INSERT INTO seed_keys (card) VALUES ($1)",
+		},
+		{
+			name:        "an explicit table name wins over the type name",
+			item:        seedDeck{Card: "Joker"},
+			placeholder: OrdinalPlaceholder,
+			wantStmt:    "INSERT INTO joker_deck (card) VALUES ($1)",
+		},
+		{
+			name:        "an explicit table name is read through a pointer",
+			item:        &seedDeck{Card: "Joker"},
+			placeholder: OrdinalPlaceholder,
+			wantStmt:    "INSERT INTO joker_deck (card) VALUES ($1)",
 		},
 		{
 			name:        "non-struct is rejected",
