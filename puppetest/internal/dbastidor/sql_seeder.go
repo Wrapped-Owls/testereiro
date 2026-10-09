@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"reflect"
 	"strings"
-
-	"github.com/wrapped-owls/testereiro/puppetest/pkg/strnormalizer"
 )
 
 func ExecuteSeedStruct(db *sql.DB, item any, placeholder PlaceholderStyle) error {
@@ -23,7 +21,7 @@ func ExecuteSeedStruct(db *sql.DB, item any, placeholder PlaceholderStyle) error
 	}
 
 	typ := val.Type()
-	tableName := strnormalizer.ToSnakeCase(typ.Name()) + "s" // Simple pluralization standard
+	tableName := tableNameOf(item, typ)
 
 	var columns []string
 	var values []any
