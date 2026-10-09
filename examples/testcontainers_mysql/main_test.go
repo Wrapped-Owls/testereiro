@@ -44,7 +44,8 @@ func TestMain(m *testing.M) {
 		puppetest.WithAfterFactoryClose(func(_ *puppetest.FactoryCloseEvent) error {
 			return containerHook{container: container}.Close()
 		}),
-		puppetest.WithConnectionFactory(mysqlPerformerFromContainer(container), true),
+		puppetest.WithConnectionFactory(mysqlPerformerFromContainer(container)),
+		puppetest.WithDatabaseLifecycle(puppetest.MySQLLifecycle),
 		puppetest.WithExtensions(
 			puppetest.WithMigrationRunner(migrations.FS()),
 		),
