@@ -26,7 +26,7 @@ func SQLitePerformer(_ context.Context, conf puppetest.DBConnectionConfig) (*sql
 
 func TestMain(m *testing.M) {
 	engineFactory, err := puppetest.NewEngineFactory(
-		puppetest.WithConnectionFactory(SQLitePerformer, false),
+		puppetest.WithConnectionFactory(SQLitePerformer),
 		puppetest.WithExtensions(
 			puppetest.WithMigrationRunner(migrations.MigrationFS()),
 			puppetest.WithTestServerFromEngine(func(e *puppetest.Engine) (http.Handler, error) {
